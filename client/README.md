@@ -12,3 +12,4 @@ TPL-AUCTION
 
 -Build login API
 -Auth middleware
+-React: Login/Signup page UI
