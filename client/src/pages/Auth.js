@@ -215,7 +215,7 @@ const Auth = () => {
                 type="submit"
                 className="mt-2 lg:mt-1 bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-[15px] tracking-wide py-3 lg:py-2.5 rounded-lg transition-colors"
               >
-                {isSignUp ? "Enter the Auction" : "Sign In"}
+                {isSignUp ? "Sign Up" : "Sign In"}
               </button>
             </form>
           </div>
