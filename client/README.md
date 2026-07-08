@@ -7,3 +7,8 @@ TPL-AUCTION
 -Setup MongoDB connection
 -Basic Express server with a test route
 -Design User schema
+
+-Build signup API
+
+-Build login API
+-Auth middleware
