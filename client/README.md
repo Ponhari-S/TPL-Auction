@@ -17,3 +17,5 @@ TPL-AUCTION
 -Connect frontend auth to backend
 -Test full signup/login flow
 -Protect routes with JWT
+
+-Design Player schema
