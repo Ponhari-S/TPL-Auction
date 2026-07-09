@@ -1,7 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
+  const dispatch=useDispatch();
+  const navigate=useNavigate();
   const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -27,10 +32,14 @@ const Auth = () => {
       const endpoint = isSignUp ? "api/auth/signup" : "api/auth/login";
       const payload = isSignUp ? formData : { email: formData.email, password: formData.password };
       const res = await axios.post(`http://localhost:5000/${endpoint}`, payload);
-      console.log(res.data);
-
-      if (!isSignUp) {
-        localStorage.setItem("token", res.data.token);
+      
+      if(isSignUp){
+        console.log("SignedUp:",res.data);
+        setIsSignUp(false);
+      }
+      else{
+        dispatch(setCredentials({ user: res.data.user,token: res.data.token}));
+        navigate("/");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");

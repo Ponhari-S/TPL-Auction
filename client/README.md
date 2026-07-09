@@ -13,3 +13,7 @@ TPL-AUCTION
 -Build login API
 -Auth middleware
 -React: Login/Signup page UI
+
+-Connect frontend auth to backend
+-Test full signup/login flow
+-Protect routes with JWT
