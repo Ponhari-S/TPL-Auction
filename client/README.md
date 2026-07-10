@@ -17,5 +17,8 @@ TPL-AUCTION
 -Connect frontend auth to backend
 -Test full signup/login flow
 -Protect routes with JWT
-
 -Design Player schema
+
+-Design Team schema
+-Design AuctionState schema
+-Write seed script to import player data into DB

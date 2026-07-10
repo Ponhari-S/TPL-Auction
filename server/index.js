@@ -4,7 +4,7 @@ require('dotenv').config();
 const { connectDB } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const protect=require('./middleware/authMiddleware');
-const player=require('./models/Player');
+const playerRoutes=require('./routes/playerRoutes');
 
 connectDB();
 
@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use('/api/auth',authRoutes);
+app.use('/api/players',playerRoutes);
 
 app.get('/api/test-protected',protect,(req,res)=>{
     res.status(200).json({message:"You are Authorized!!",user:req.user});

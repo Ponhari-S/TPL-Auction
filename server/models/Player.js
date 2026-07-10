@@ -43,8 +43,13 @@ const playerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         default: null
+    },
+    pool:{
+        type:String,
+        enum:['marquee','elite','rookie'],
+        default:null
     }
 },
 {timestamps: true});
 
-const Player = mongoose.model('Player', playerSchema);
+module.exports = mongoose.model('Player', playerSchema);
