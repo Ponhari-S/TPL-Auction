@@ -1,6 +1,7 @@
 import Auth from "./pages/Auth";
 import { useSelector } from "react-redux";
 import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom";
+import Home from "./pages/Home";
 
 const ProtectedRoute = ({children}) =>{
   const {token}=useSelector((state)=>state.auth);
@@ -15,11 +16,7 @@ function App() {
           useSelector((state)=>state.auth.token) ? <Navigate to="/" /> : <Auth />
         } />
         <Route path="/" element={<ProtectedRoute>
-          <div className="min-h-screen flex items-center justify-center bg-slate-900">
-                <h1 className="text-3xl font-bold text-white">
-                  Logged in — Home page coming Day 15
-                </h1>
-          </div>
+          <Home />
         </ProtectedRoute>} />
       </Routes>
     </BrowserRouter>

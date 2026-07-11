@@ -22,3 +22,7 @@ TPL-AUCTION
 -Design Team schema
 -Design AuctionState schema
 -Write seed script to import player data into DB
+-Build Player CRUD API
+
+-Build Team CRUD API
+-Home page layout: Header component
