@@ -25,6 +25,19 @@ router.get('/',protect,async(req,res)=>{
     }
 });
 
+router.get('/me/profile',protect,async (req,res)=>{
+    try{
+        const player= await Player.findOne({user: req.user.id})
+        if(!player){
+            return res.status(404).json({message:"No player profile found for this user"});
+        }
+        res.json(player);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});   
+    }
+})
+
 router.get('/:id',protect,async(req,res)=>{
     try{
         const player=await Player.findById(req.params.id);
