@@ -80,4 +80,21 @@ router.delete('/:id',protect,isAdmin,async(req,res)=>{
     }
 });
 
+router.put('/me/register',protect,async (req,res)=>{
+    try{
+        const player= await Player.findOne({user: req.user.id})
+        if(!player){
+            return res.status(404).json({message:"No player profile found for this user"});
+        }
+
+        player.status='registered';
+        await player.save();
+
+        res.json(player);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});   
+    }
+})
+
 module.exports=router;

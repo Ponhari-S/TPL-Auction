@@ -26,3 +26,7 @@ TPL-AUCTION
 
 -Build Team CRUD API
 -Home page layout: Header component
+
+-Player Info section
+-Register for Auction button
+-API to update player status
