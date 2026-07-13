@@ -2,6 +2,7 @@ import Auth from "./pages/Auth";
 import { useSelector } from "react-redux";
 import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom";
 import Home from "./pages/Home";
+import ViewTeam from "./pages/ViewTeam";
 
 const ProtectedRoute = ({children}) =>{
   const {token}=useSelector((state)=>state.auth);
@@ -18,6 +19,11 @@ function App() {
         <Route path="/" element={<ProtectedRoute>
           <Home />
         </ProtectedRoute>} />
+        <Route path="/view-team" element={
+          <ProtectedRoute>
+            <ViewTeam />
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

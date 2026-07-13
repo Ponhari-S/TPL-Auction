@@ -13,7 +13,6 @@ router.post('/',protect,isAdmin,async (req,res)=>{
         const team = await Team.create({
             name,
             logo,
-            captain,
             purse,
             remainingPurse: purse
         });
@@ -28,6 +27,16 @@ router.post('/',protect,isAdmin,async (req,res)=>{
 router.get('/',protect,async (req,res)=>{
     try{
         const team= await Team.find().populate('captain','name email').populate('players');
+        res.json(team);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+});
+
+router.get('/unassigned/list',protect,async (req,res)=>{
+    try{
+        const team=await Team.find({captain: null});
         res.json(team);
     }
     catch(err){
@@ -66,6 +75,33 @@ router.put('/:id',protect,isAdmin,async (req,res)=>{
     }
     catch(err){
         res.status(500).json({message:err.message});   
+    }
+});
+
+router.put('/:id/select',protect,async (req,res)=>{
+    try{
+        if(req.user.role!=='captain'){
+            res.status(403).json({message:"Only captains can select a team"})
+        }
+        const existingTeam=await Team.find({captain:req.user.id});
+        if(existingTeam){
+            return res.status(400).json({ message: 'You already own a team' });
+        }
+        const team = await Team.findById(req.params.id);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+        if (team.owner) {
+            return res.status(400).json({ message: 'This team is already taken' });
+        }
+        team.captain=req.user.id;
+        await team.Save();
+
+        await User.findByIdAndUpdate(req.user.id,{team:team._id});
+        res.json(team);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
     }
 });
 

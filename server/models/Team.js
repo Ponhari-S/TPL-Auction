@@ -12,7 +12,7 @@ const teamSchema = new mongoose.Schema({
     captain:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required:true
+        default:null
     },
     purse:{
         type:Number,

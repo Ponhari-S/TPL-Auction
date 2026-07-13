@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice'
-import { useNavigate } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 
 const Header = () => {
     const dispatch = useDispatch();
@@ -23,6 +23,21 @@ const Header = () => {
           TPL <span className="text-[#f4b942]">Auction</span>
         </h1>
       </div>
+
+      <nav className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+  <Link
+    to="/"
+    className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+  >
+    Home
+  </Link>
+  <Link
+    to="/view-team"
+    className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+  >
+    View Team
+  </Link>
+</nav>
 
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">

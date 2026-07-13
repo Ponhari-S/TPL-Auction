@@ -30,3 +30,7 @@ TPL-AUCTION
 -Player Info section
 -Register for Auction button
 -API to update player status
+
+-"View Team" navigation link
+-Route setup
+-Admin-only "Register Team" form UI
