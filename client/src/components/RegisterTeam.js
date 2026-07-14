@@ -24,7 +24,7 @@ const RegisterTeam = () => {
                 purse: Number(formData.purse)
             });
             setMessage(`Team "${res.data.name}" created successfully`);
-            setFormData({ name: "", logo: "", captain: "", purse: "" });
+            setFormData({ name: "", logo: "", purse: "" });
         }
         catch (err) {
             setError(err.response?.data?.message || 'Failed to create team');
@@ -74,19 +74,6 @@ const RegisterTeam = () => {
             value={formData.logo}
             onChange={handleChange}
             className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">Captain's User ID</label>
-          <input
-            type="text"
-            name="captain"
-            placeholder="Enter user ID"
-            value={formData.captain}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
-            required
           />
         </div>
 

@@ -16,7 +16,6 @@ router.post('/',protect,isAdmin,async (req,res)=>{
             purse,
             remainingPurse: purse
         });
-        await User.findByIdAndUpdate(captain,{team:team._id});
         res.status(201).json(team);
     }
     catch(err){
@@ -83,7 +82,7 @@ router.put('/:id/select',protect,async (req,res)=>{
         if(req.user.role!=='captain'){
             res.status(403).json({message:"Only captains can select a team"})
         }
-        const existingTeam=await Team.find({captain:req.user.id});
+        const existingTeam=await Team.findOne({captain:req.user.id});
         if(existingTeam){
             return res.status(400).json({ message: 'You already own a team' });
         }
@@ -91,11 +90,11 @@ router.put('/:id/select',protect,async (req,res)=>{
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }
-        if (team.owner) {
+        if (team.captain) {
             return res.status(400).json({ message: 'This team is already taken' });
         }
         team.captain=req.user.id;
-        await team.Save();
+        await team.save();
 
         await User.findByIdAndUpdate(req.user.id,{team:team._id});
         res.json(team);
