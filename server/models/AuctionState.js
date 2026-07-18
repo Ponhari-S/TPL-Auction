@@ -35,6 +35,10 @@ const auctionStateSchema=new mongoose.Schema({
     minBidIncrementRules:{
         type:Object,
         default:{}
+    },
+    squadSize:{
+        type:Number,
+        default: 6
     }
 })
 

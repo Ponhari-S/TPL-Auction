@@ -37,6 +37,12 @@ const Header = () => {
   >
     View Team
   </Link>
+  {user?.role === 'admin' && (
+  <Link to="/admin" className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+  >
+    Admin Dashboard
+  </Link>
+)}
 </nav>
 
       <div className="flex items-center gap-3 sm:gap-4">

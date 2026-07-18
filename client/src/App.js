@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ViewTeam from "./pages/ViewTeam";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const ProtectedRoute = ({children}) =>{
   const {token}=useSelector((state)=>state.auth);
@@ -22,6 +23,11 @@ function App() {
         <Route path="/view-team" element={
           <ProtectedRoute>
             <ViewTeam />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         } />
       </Routes>
