@@ -39,6 +39,18 @@ const auctionStateSchema=new mongoose.Schema({
     squadSize:{
         type:Number,
         default: 6
+    },
+    maxRetentions:{
+        type:Number,
+        default:2
+    },
+    minRetentionPrice:{
+        type:Number,
+        default:1000000
+    },
+    maxRetentionPrice:{
+        type:Number,
+        default:5000000
     }
 })
 

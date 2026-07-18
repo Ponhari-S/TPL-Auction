@@ -36,3 +36,5 @@ TPL-AUCTION
 -Admin-only "Register Team" form UI
 
 -Captain-only "Select Team" flow
+
+-Auction Rules by Admin

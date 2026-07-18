@@ -48,6 +48,15 @@ const playerSchema = new mongoose.Schema({
         type:String,
         enum:['marquee','elite','rookie'],
         default:null
+    },
+    retainedBy:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Team',
+        default:null
+    },
+    retentionPrice:{
+        type:Number,
+        default:null
     }
 },
 {timestamps: true});
