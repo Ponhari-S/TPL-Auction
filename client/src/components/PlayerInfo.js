@@ -79,7 +79,7 @@ const PlayerInfo = () => {
                 </span>
             </div>
 
-            {player.status !== 'registered' && (
+            {player.status !== 'sold' && player.status !== 'registered' && (
                 <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between gap-4 flex-wrap">
                     <p className="text-slate-500 text-sm">
                         Status: <span className="text-white capitalize">{player.status}</span>

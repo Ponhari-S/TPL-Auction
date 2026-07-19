@@ -38,3 +38,5 @@ TPL-AUCTION
 -Captain-only "Select Team" flow
 
 -Auction Rules by Admin
+
+-Retention UI and API
