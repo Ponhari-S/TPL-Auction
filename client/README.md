@@ -40,3 +40,6 @@ TPL-AUCTION
 -Auction Rules by Admin
 
 -Retention UI and API
+
+-Auction queue builder: generate ordered list of registered players
+-Wire controls to backend auction state, test state transitions
