@@ -6,10 +6,10 @@ const Player = require('../models/Player');
 
 const router = express.Router();
 
-const getOrCreateAuctionState = async () =>{
-    const state=await AuctionState.findOne();
-    if(!state){
-        state=await AuctionState.create({});
+let getOrCreateAuctionState = async () =>{
+    let state = await AuctionState.findById('singleton');
+    if (!state) {
+      state = await AuctionState.create({ _id: 'singleton' });
     }
     return state;
 };
@@ -25,7 +25,7 @@ const shuffleArray = (array) => {
 
 router.get('/rules',protect,async (req,res)=>{
     try{
-        const state=await getOrCreateAuctionState();
+        let state=await getOrCreateAuctionState();
         res.json(state);
     }
     catch(err){
@@ -35,7 +35,10 @@ router.get('/rules',protect,async (req,res)=>{
 
 router.post('/build-queue',protect,isAdmin,async (req,res)=>{
     try{
-        const state= await getOrCreateAuctionState();
+        let state= await getOrCreateAuctionState();
+        if (state.status === 'live' || state.status === 'paused') {
+            return res.status(400).json({ message: 'Cannot rebuild queue while auction is in progress' });
+        }
         const pools = { marquee: [], elite: [], rookie: [], unrated: [] };
         const eligiblePlayer = await Player.find({status:"registered"});
         eligiblePlayer.forEach((player) => {
@@ -58,7 +61,7 @@ router.post('/build-queue',protect,isAdmin,async (req,res)=>{
 
 router.put('/start',async (req,res)=>{
     try{
-        const state = await getOrCreateAuctionState();
+        let state = await getOrCreateAuctionState();
 
         if(!state.playerQueue || state.playerQueue.length===0){
             return res.status(400).json({ message: 'Build the queue before starting the auction' });
@@ -73,9 +76,9 @@ router.put('/start',async (req,res)=>{
     }
 });
 
-router.put('pause',async (req,res)=>{
+router.put('/pause',async (req,res)=>{
     try{
-        const state=await getOrCreateAuctionState();
+        let state=await getOrCreateAuctionState();
         if(state.status!=='live'){
             return res.status(400).json({ message: 'Auction is not currently live' });
         }
@@ -90,7 +93,7 @@ router.put('pause',async (req,res)=>{
 
 router.put('/resume',async (req,res)=>{
     try{
-        const state=await getOrCreateAuctionState();
+        let state=await getOrCreateAuctionState();
         if(state.status!=='paused'){
             return res.status(400).json({ message: 'Auction is not currently paused' });
         }
@@ -105,7 +108,7 @@ router.put('/resume',async (req,res)=>{
 
 router.get('/status',async(req,res)=>{
     try{
-        const state=await getOrCreateAuctionState();
+        let state=await getOrCreateAuctionState();
         res.json({status:state.status});
     }
     catch(err){

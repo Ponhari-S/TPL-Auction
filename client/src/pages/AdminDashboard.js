@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import AuctionRules from '../components/AuctionRules';
 import BuildQueue from '../components/BuildQueue';
 import AuctionControls from '../components/AuctionControls';
+import SocketTest from '../components/SocketTest';
 
 const AdminDashboard = () => {
     const user = useSelector((state)=>state.auth.user);
@@ -20,6 +21,7 @@ const AdminDashboard = () => {
         <AuctionRules />
         <BuildQueue />
         <AuctionControls />
+        <SocketTest />
       </div>
     </div>
   )

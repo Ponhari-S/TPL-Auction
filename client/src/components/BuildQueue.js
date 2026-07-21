@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import api from '../api/axios';
 
 const BuildQueue = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const [auctionStatus,setAuctionStatus]=useState(null);
+
+    useEffect(()=>{
+      api.get('/auction/status').then((res)=>setAuctionStatus(res.data.status)).catch((err) => console.error('Failed to fetch auction status', err));
+    },[]);
 
     const handleBuild = async () => {
         setLoading(true);
@@ -47,7 +52,7 @@ const BuildQueue = () => {
       <button
         type='button'
         onClick={handleBuild}
-        disabled={loading}
+        disabled={loading || auctionStatus === 'live' || auctionStatus === 'paused'}
         className="bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors inline-flex items-center gap-2"
       >
         {loading && <span className="w-1.5 h-1.5 rounded-full bg-[#0a0f1e] animate-pulse" />}

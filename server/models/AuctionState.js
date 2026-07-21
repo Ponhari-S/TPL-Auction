@@ -1,10 +1,11 @@
 const mongoose=require('mongoose');
 
 const auctionStateSchema=new mongoose.Schema({
-    state:{
-        type:String,
-        enum:['not-started','live','ended','paused'],
-        default:'not-started'
+    _id: { type: String, default: 'singleton' },
+    status: {
+      type: String,
+      enum: ['not-started', 'live', 'paused', 'ended'],
+      default: 'not-started'
     },
     currentPlayer:{
         type:mongoose.Schema.Types.ObjectId,

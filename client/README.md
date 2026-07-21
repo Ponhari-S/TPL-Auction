@@ -43,3 +43,6 @@ TPL-AUCTION
 
 -Auction queue builder: generate ordered list of registered players
 -Wire controls to backend auction state, test state transitions
+
+-Admin Start/Pause/Resume auction controls
+-Basic Socket SetUp
