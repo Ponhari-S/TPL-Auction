@@ -4,6 +4,7 @@ require('dotenv').config();
 const { connectDB } = require('./config/db');
 const { Server } = require('socket.io');
 const http = require('http');
+const {initEngine} = require('./auction/engine');
 
 const authRoutes = require('./routes/authRoutes');
 const protect=require('./middleware/authMiddleware');
@@ -38,6 +39,8 @@ const io = new Server(server,{
         methods: ['GET','POST']
     }
 });
+
+initEngine(io);
 
 io.on('connection',(socket)=>{
     console.log('Client connected:', socket.id);

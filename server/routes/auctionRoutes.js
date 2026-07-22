@@ -3,6 +3,7 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const express = require('express');
 const Player = require('../models/Player');
+const { startNextPlayer } = require('../auction/engine');
 
 const router = express.Router();
 
@@ -69,6 +70,9 @@ router.put('/start',async (req,res)=>{
 
         state.status='live';
         await state.save();
+
+        await startNextPlayer();
+        
         res.json(state);
     }
     catch(err){

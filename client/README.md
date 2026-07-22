@@ -46,3 +46,5 @@ TPL-AUCTION
 
 -Admin Start/Pause/Resume auction controls
 -Basic Socket SetUp
+
+-Sketch the auction engine state machine
