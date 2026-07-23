@@ -66,7 +66,7 @@ const AuctionControls = () => {
       )}
 
       <div className="flex gap-3">
-        {status === 'not-started' && (
+        {(status === 'not-started' || status==='ended') && (
           <button
             onClick={() => handleAction('start')}
             className="bg-[#22c55e] hover:bg-[#1ea34e] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"

@@ -48,3 +48,6 @@ TPL-AUCTION
 -Basic Socket SetUp
 
 -Sketch the auction engine state machine
+
+-Implement "next player" logic: pull from queue, broadcast playerUp event
+-Implement timer logic

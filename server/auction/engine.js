@@ -8,6 +8,13 @@ const initEngine = (io)=>{
     ioInstance=io;
 };
 
+const scheduleTimer = (durationMx)=>{
+    if(currentTimer){
+        clearTimeout(currentTimer);
+    }
+    currentTimer=setTimeout(handleTimeout,durationMx);
+}
+
 const startNextPlayer = async() =>{
     const state=await AuctionState.findById('singleton');
     if(!state.playerQueue || state.playerQueue.length===0){
@@ -38,6 +45,16 @@ const startNextPlayer = async() =>{
 
     console.log(`Player up: ${player.name}, timer ends at ${state.timerEndsAt}`);
 
+    scheduleTimer(30000);
+
+};
+
+const handleTimeout=async ()=>{
+    const state=await AuctionState.findById('singleton');
+    console.log(`Timer expired for player ${state.currentPlayer}, currentBidder: ${state.currentBidder}`);
+    ioInstance.emit('auction:timerExpired', { playerId: state.currentPlayer });
+
+    await startNextPlayer();
 };
 
 module.exports={initEngine,startNextPlayer}
