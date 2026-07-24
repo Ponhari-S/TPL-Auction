@@ -51,3 +51,5 @@ TPL-AUCTION
 
 -Implement "next player" logic: pull from queue, broadcast playerUp event
 -Implement timer logic
+
+-Implement bid:place socket event with server-side validation

@@ -5,6 +5,10 @@ const { connectDB } = require('./config/db');
 const { Server } = require('socket.io');
 const http = require('http');
 const {initEngine} = require('./auction/engine');
+const jwt = require('jsonwebtoken');
+const Team = require('./models/Team');
+const AuctionState = require('./models/AuctionState');
+const { placeBid } = require('./auction/engine');
 
 const authRoutes = require('./routes/authRoutes');
 const protect=require('./middleware/authMiddleware');
@@ -48,6 +52,19 @@ io.on('connection',(socket)=>{
     socket.on('ping-test',()=>{
         socket.emit('pong-test', 'Hello from server');
     });
+
+    socket.on('bid:place', async ({token,amount})=>{
+        try{
+            const decoded=jwt.verify(token,process.env.JWT_SECRET);
+            const result=await placeBid(decoded.id,amount);
+            if(!result.success){
+                socket.emit('bid:rejected',{ message: result.message });
+            }
+        }
+        catch(err){
+            socket.emit('bid:rejected',{message: 'Invalid or expired session'});
+        }
+    })
 
     socket.on('disconnect',()=>{
         console.log('Client disconnected:', socket.id)

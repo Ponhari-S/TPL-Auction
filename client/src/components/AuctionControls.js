@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import socket from "../socket/socket";
 
 const AuctionControls = () => {
   const [status, setStatus] = useState("");
@@ -19,6 +20,16 @@ const AuctionControls = () => {
     fetchStatus();
   }, []);
 
+  useEffect(()=>{
+    socket.on('auction:ended',()=>{
+      setStatus('ended');
+    })
+
+    return () => {
+      socket.off('auction:ended');
+    };
+  },[]);
+  
   const handleAction = async (action) => {
     try {
       const res = await api.put(`/auction/${action}`);
