@@ -53,3 +53,6 @@ TPL-AUCTION
 -Implement timer logic
 
 -Implement bid:place socket event with server-side validation
+
+-Implement Player Sold Logic
+-Implement Player UnSold Logic

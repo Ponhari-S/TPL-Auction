@@ -52,9 +52,38 @@ const startNextPlayer = async() =>{
 
 const handleTimeout=async ()=>{
     const state=await AuctionState.findById('singleton');
-    console.log(`Timer expired for player ${state.currentPlayer}, currentBidder: ${state.currentBidder}`);
-    ioInstance.emit('auction:timerExpired', { playerId: state.currentPlayer });
+    const player=await Player.findById(state.currentPlayer);
+    if(state.currentBidder){
+        const team=await Team.findById(state.currentBidder);
+        player.status='sold';
+        player.soldTo=team._id;
+        player.soldPrice=state.currentBid;
+        await player.save();
 
+        team.remainingPurse -= state.currentBid;
+        team.players.push(player._id);
+        await team.save();
+
+        ioInstance.emit('auction:playerSold',{
+            player,
+            team: {
+                _id: team._id,
+                name: team.name
+            },
+            soldPrice: state.currentBid
+        });
+        console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
+    }
+    else{
+        player.status='unsold';
+        await player.save();
+
+        state.playerQueue.push(player._id);
+        await state.save();
+
+        ioInstance.emit('auction:playerUnsold',{player});
+        console.log(`UNSOLD : ${player.name}`);
+    }
     await startNextPlayer();
 };
 
@@ -82,17 +111,22 @@ const placeBid = async (userId,amount)=>{
     }
     state.currentBid=amount;
     state.currentBidder=team._id;
+    state.timerEndsAt=new Date(Date.now()+15000);
     await state.save();
+
+    scheduleTimer(15000);
+
     ioInstance.emit('auction:bidUpdate',{
         currentBid:state.currentBid,
         currentBidder:{
             _id:team._id,
             name:team.name
-        }
+        },
+        timerEndsAt:state.timerEndsAt
     });
     const bidded=await Player.findById(state.currentPlayer);
     console.log(`Bid placed: ${team.name} bid ${amount} on player ${bidded.name}`);
     return { success: true };
 };
 
-module.exports={initEngine,startNextPlayer,placeBid}
+module.exports={initEngine,startNextPlayer,placeBid};

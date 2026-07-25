@@ -32,12 +32,22 @@ const SocketTest = () => {
       console.log('Bid update: ', data);
     });
 
+    socket.on('auction:playerSold',(data)=>{
+      console.log('Player Sold: ', data);
+    });
+
+    socket.on('auction:playerUnsold',(data)=>{
+      console.log("Player Unsold: ",data);
+    });
+
     return () => {
       socket.off('connect');
       socket.off('pong-test');
       socket.off('auction:playerUp');
       socket.off('bid:rejected');
       socket.off('auction:bidUpdate');
+      socket.off('auction:playerSold');
+      socket.off('auction:playerUnsold');
       socket.disconnect();
     }
   }, []);
