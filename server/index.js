@@ -15,6 +15,7 @@ const protect=require('./middleware/authMiddleware');
 const playerRoutes=require('./routes/playerRoutes');
 const teamRoutes=require('./routes/teamRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
+const Player = require('./models/Player');
 
 connectDB();
 
@@ -46,8 +47,25 @@ const io = new Server(server,{
 
 initEngine(io);
 
-io.on('connection',(socket)=>{
+io.on('connection',async (socket)=>{
     console.log('Client connected:', socket.id);
+
+    try{
+        const state=await AuctionState.findById('singleton');
+        if(state && state.status=='live' && state.currentPlayer){
+            const player = await Player.findById(state.currentPlayer);
+            socket.emit('auction:sync',{
+                status:state.status,
+                player,
+                currentBid: state.currentBid,
+                currentBidder: state.currentBidder,
+                timerEndsAt: state.timerEndsAt
+            });
+        }
+    }
+    catch(err){
+        console.error('Sync on connect failed:', err.message);
+    }
 
     socket.on('ping-test',()=>{
         socket.emit('pong-test', 'Hello from server');

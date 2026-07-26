@@ -75,14 +75,23 @@ const handleTimeout=async ()=>{
         console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
     }
     else{
-        player.status='unsold';
-        await player.save();
+        if(player.status==='unsold'){
+            player.status='unsold-final';
+            await player.save();
 
-        state.playerQueue.push(player._id);
-        await state.save();
+            ioInstance.emit('auction:playerUnsoldFinal');
+            console.log(`UNSOLD-FINAL: ${player.name}`);
+        }
+        else{
+            player.status='unsold';
+            await player.save();
 
-        ioInstance.emit('auction:playerUnsold',{player});
-        console.log(`UNSOLD : ${player.name}`);
+            state.playerQueue.push(player._id);
+            await state.save();
+
+            ioInstance.emit('auction:playerUnsold',{player});
+            console.log(`UNSOLD : ${player.name}`);
+        }
     }
     await startNextPlayer();
 };
@@ -109,23 +118,38 @@ const placeBid = async (userId,amount)=>{
     if (amount > team.remainingPurse) {
         return { success: false, message: 'Insufficient purse for this bid' };
     }
-    state.currentBid=amount;
-    state.currentBidder=team._id;
-    state.timerEndsAt=new Date(Date.now()+15000);
-    await state.save();
+
+    const newTimerEndsAt=new Date(Date.now()+15000);
+
+    const updatedState=await AuctionState.findOneAndUpdate({
+        _id:"singleton",
+        currentBid: state.currentBid,
+        currentPlayer: state.currentPlayer
+    },
+    {
+        currentBid: amount,
+        currentBidder: team._id,
+        timerEndsAt: newTimerEndsAt
+    },
+    {
+        new: true
+    });
+
+    if (!updatedState) {
+        return { success: false, message: 'Bid rejected — someone else bid first, try again' };
+    }
 
     scheduleTimer(15000);
 
     ioInstance.emit('auction:bidUpdate',{
-        currentBid:state.currentBid,
+        currentBid:updatedState.currentBid,
         currentBidder:{
             _id:team._id,
             name:team.name
         },
-        timerEndsAt:state.timerEndsAt
+        timerEndsAt:updatedState.timerEndsAt
     });
-    const bidded=await Player.findById(state.currentPlayer);
-    console.log(`Bid placed: ${team.name} bid ${amount} on player ${bidded.name}`);
+    console.log(`Bid placed: ${team.name} bid ${amount} on player ${state.currentPlayer.name}`);
     return { success: true };
 };
 

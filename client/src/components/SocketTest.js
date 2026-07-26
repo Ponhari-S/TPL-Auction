@@ -40,6 +40,14 @@ const SocketTest = () => {
       console.log("Player Unsold: ",data);
     });
 
+    socket.on('auction:playerUnsoldFinal',(data)=>{
+      console.log("Player Unsold Final: ",data);
+    });
+
+    socket.on('auction:sync',(data)=>{
+      console.log("Synced",data);
+    })
+
     return () => {
       socket.off('connect');
       socket.off('pong-test');
@@ -48,6 +56,8 @@ const SocketTest = () => {
       socket.off('auction:bidUpdate');
       socket.off('auction:playerSold');
       socket.off('auction:playerUnsold');
+      socket.off('auction:playerUnsoldFinal');
+      socket.off('auction:sync');
       socket.disconnect();
     }
   }, []);
