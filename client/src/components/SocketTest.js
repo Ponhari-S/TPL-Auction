@@ -10,8 +10,6 @@ const SocketTest = () => {
   const [response, setResponse] = useState("");
 
   useEffect(() => {
-    socket.connect();
-
     socket.on('connect', () => {
       setConnected(true);
     });
@@ -58,7 +56,6 @@ const SocketTest = () => {
       socket.off('auction:playerUnsold');
       socket.off('auction:playerUnsoldFinal');
       socket.off('auction:sync');
-      socket.disconnect();
     }
   }, []);
 

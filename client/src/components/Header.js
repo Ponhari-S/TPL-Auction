@@ -42,7 +42,11 @@ const Header = () => {
   >
     Admin Dashboard
   </Link>
-)}
+  )}
+  <Link to="/auction" className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+  >
+    Auction Live
+  </Link>
 </nav>
 
       <div className="flex items-center gap-3 sm:gap-4">

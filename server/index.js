@@ -47,6 +47,24 @@ const io = new Server(server,{
 
 initEngine(io);
 
+const sendSyncIfLive = async (socket) => {
+    try {
+      const state = await AuctionState.findById('singleton');
+      if (state && state.status === 'live' && state.currentPlayer) {
+        const player = await Player.findById(state.currentPlayer);
+        socket.emit('auction:sync', {
+          status: state.status,
+          player,
+          currentBid: state.currentBid,
+          currentBidder: state.currentBidder,
+          timerEndsAt: state.timerEndsAt
+        });
+      }
+    } catch (err) {
+      console.error('Sync failed:', err.message);
+    }
+  };
+
 io.on('connection',async (socket)=>{
     console.log('Client connected:', socket.id);
 
@@ -66,6 +84,12 @@ io.on('connection',async (socket)=>{
     catch(err){
         console.error('Sync on connect failed:', err.message);
     }
+
+    sendSyncIfLive(socket);
+
+  socket.on('auction:requestSync', () => {
+    sendSyncIfLive(socket);
+  });
 
     socket.on('ping-test',()=>{
         socket.emit('pong-test', 'Hello from server');

@@ -56,3 +56,9 @@ TPL-AUCTION
 
 -Implement Player Sold Logic
 -Implement Player UnSold Logic
+
+-Final Unsold Logic
+-Captain Reconnect
+
+-Auction Page
+-Live Stats Display

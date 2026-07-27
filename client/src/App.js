@@ -4,13 +4,26 @@ import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ViewTeam from "./pages/ViewTeam";
 import AdminDashboard from "./pages/AdminDashboard";
+import AuctionPage from "./pages/AuctionPage";
+import { useEffect } from "react";
+import socket from "./socket/socket";
 
 const ProtectedRoute = ({children}) =>{
   const {token}=useSelector((state)=>state.auth);
+
   return token ? children : <Navigate to="/login" />;
 }
 
 function App() {
+  const {token}=useSelector((state)=>state.auth);
+  useEffect(() => {
+    if (token) {
+      socket.connect();
+    }
+    return () => {
+      socket.disconnect();
+    };
+  }, [token]);
   return (
     <BrowserRouter>
       <Routes>
@@ -28,6 +41,11 @@ function App() {
         <Route path="/admin" element={
           <ProtectedRoute>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/auction" element={
+          <ProtectedRoute>
+            <AuctionPage />
           </ProtectedRoute>
         } />
       </Routes>
