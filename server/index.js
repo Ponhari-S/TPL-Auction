@@ -52,11 +52,12 @@ const sendSyncIfLive = async (socket) => {
       const state = await AuctionState.findById('singleton');
       if (state && state.status === 'live' && state.currentPlayer) {
         const player = await Player.findById(state.currentPlayer);
+        const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
         socket.emit('auction:sync', {
           status: state.status,
           player,
           currentBid: state.currentBid,
-          currentBidder: state.currentBidder,
+          currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
           timerEndsAt: state.timerEndsAt
         });
       }

@@ -1,29 +1,77 @@
 import { useState, useEffect } from 'react';
 import socket from "../socket/socket";
 import Header from "../components/Header";
+import api from "../api/axios";
+import { useSelector } from 'react-redux';
 
 const AuctionPage = () => {
+    const { user, token } = useSelector((state)=>state.auth);
     const [player, setPlayer] = useState("");
     const [currentBid, setCurrentBid] = useState(0);
+    const [currentBidder, setCurrentBidder] = useState(null);
+    const [minIncrement,setMinIncrement] = useState(5000000);
+    const [myteam,setMyteam] = useState(null);
+    const [bidError,setBidError] = useState("");
+    const [squadSize,setSquadSize] = useState(6);
+
+    useEffect(()=>{
+      const fetchInfo = async () =>{
+        try{
+          const rulesRes = await api.get('auction/rules');
+          setMinIncrement(rulesRes.data.minIncrement);
+
+          if(user?.role==='captain'){
+            const teamRes = await api.get('/teams');
+            const team = teamRes.data.find((t)=> t.captain._id === user._id || t.captain===user._id);
+            setMyteam(team||null);
+          }
+        }
+        catch(err){
+          console.error('Failed to fetch auction/team info', err);
+        }
+      }
+      fetchInfo();
+    },[user]);
+
+    const nextValidBid = currentBid+minIncrement;
+    const canBid = user?.role==='captain' && myteam && myteam.players.length < squadSize &&  myteam.remainingPurse >= nextValidBid;
+
+    const handleBid = () =>{
+      setBidError('');
+      socket.emit('bid:place',{token,amount:nextValidBid});
+    }
 
     useEffect(() => {
         socket.on('auction:playerUp', (data) => {
             setPlayer(data.player);
             setCurrentBid(data.currentBid);
+            setCurrentBidder(null);
         });
 
         socket.on('auction:sync', (data) => {
             if (data.status === 'live') {
                 setPlayer(data.player);
                 setCurrentBid(data.currentBid);
+                setCurrentBidder(data.currentBidder);
             }
         });
+
+        socket.on('auction:bidUpdate', (data) => {
+          setCurrentBid(data.currentBid);
+          setCurrentBidder(data.currentBidder);
+        });
+
+        socket.on('bid:rejected',(data)=>{
+          setBidError(data.message);
+        })
 
         socket.emit('auction:requestSync');
 
         return () => {
             socket.off('auction:playerUp');
             socket.off('auction:sync');
+            socket.off('auction:bidUpdate');
+            socket.off('bid:rejected');
         };
     }, []);
 
@@ -55,6 +103,37 @@ const AuctionPage = () => {
               </span>
             )}
 
+            <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
+              <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
+              <p className="font-display text-4xl text-[#f4b942] tabular-nums">₹{currentBid.toLocaleString()}</p>
+              <p className="text-slate-400 text-sm mt-3">
+                {currentBidder ? (
+                  <>Leading: <span className="text-white font-semibold">{currentBidder.name}</span></>
+                ) : (
+                  'No bids yet'
+                )}
+              </p>
+            </div>
+
+            {user?.role === 'captain' && (
+              <div className="mt-4">
+                {bidError && <p className="text-red-400 text-sm mb-2">{bidError}</p>}
+                <button
+                  onClick={handleBid}
+                  disabled={!canBid}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg text-lg"
+                >
+                Bid ₹{nextValidBid.toLocaleString()}
+                </button>
+                {myteam && myteam.players.length >= squadSize && (
+                  <p className="text-slate-500 text-xs mt-2 text-center">Your squad is full</p>
+                )}
+                {myteam && myteam.remainingPurse < nextValidBid && (
+                  <p className="text-slate-500 text-xs mt-2 text-center">Insufficient purse for next bid</p>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-8 text-left">
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Matches</p>
@@ -84,4 +163,4 @@ const AuctionPage = () => {
   )
 }
 
-export default AuctionPage
+export default AuctionPage;

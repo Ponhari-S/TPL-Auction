@@ -62,3 +62,6 @@ TPL-AUCTION
 
 -Auction Page
 -Live Stats Display
+
+-Display current price + current bidding team, live via socket
+-Bid button for captains, disabled states

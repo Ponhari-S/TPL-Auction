@@ -6,6 +6,7 @@ import SelectTeam from '../components/SelectTeam';
 import { updateUser } from '../features/auth/authSlice';
 import api from '../api/axios';
 import RetainPlayers from '../components/RetainPlayers';
+import SocketTest from "../components/SocketTest";
 
 const Home = () => {
   const user = useSelector((state)=>state.auth.user)
@@ -26,6 +27,7 @@ const Home = () => {
               <SelectTeam onSelected={refreshUser}/>
             )}
             {user?.role==='captain' && user?.team!==null && <RetainPlayers />}
+            <SocketTest />
         </div>
     </div>
   )

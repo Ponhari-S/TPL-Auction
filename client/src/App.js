@@ -24,6 +24,7 @@ function App() {
       socket.disconnect();
     };
   }, [token]);
+  
   return (
     <BrowserRouter>
       <Routes>
