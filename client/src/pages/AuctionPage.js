@@ -3,42 +3,47 @@ import socket from "../socket/socket";
 import Header from "../components/Header";
 import api from "../api/axios";
 import { useSelector } from 'react-redux';
+import CountdownTimer from './CountdownTimer';
 
 const AuctionPage = () => {
-    const { user, token } = useSelector((state)=>state.auth);
+    const { user, token } = useSelector((state) => state.auth);
     const [player, setPlayer] = useState("");
     const [currentBid, setCurrentBid] = useState(0);
     const [currentBidder, setCurrentBidder] = useState(null);
-    const [minIncrement,setMinIncrement] = useState(5000000);
-    const [myteam,setMyteam] = useState(null);
-    const [bidError,setBidError] = useState("");
-    const [squadSize,setSquadSize] = useState(6);
+    const [minIncrement, setMinIncrement] = useState(5000000);
+    const [myteam, setMyteam] = useState(null);
+    const [teams, setTeams] = useState(null);
+    const [bidError, setBidError] = useState("");
+    const [squadSize, setSquadSize] = useState(6);
+    const [timerEndsAt, setTimerEndsAt] = useState(null);
 
-    useEffect(()=>{
-      const fetchInfo = async () =>{
-        try{
+    useEffect(() => {
+      const fetchInfo = async () => {
+        try {
           const rulesRes = await api.get('auction/rules');
           setMinIncrement(rulesRes.data.minIncrement);
 
-          if(user?.role==='captain'){
-            const teamRes = await api.get('/teams');
-            const team = teamRes.data.find((t)=> t.captain._id === user._id || t.captain===user._id);
-            setMyteam(team||null);
+          const teamRes = await api.get('/teams');
+          setTeams(teamRes.data);
+
+          if (user?.role === 'captain') {
+            const team = teamRes.data.find((t) => t.captain._id === user._id || t.captain === user._id);
+            setMyteam(team || null);
           }
         }
-        catch(err){
+        catch (err) {
           console.error('Failed to fetch auction/team info', err);
         }
       }
       fetchInfo();
-    },[user]);
+    }, [user]);
 
-    const nextValidBid = currentBid+minIncrement;
-    const canBid = user?.role==='captain' && myteam && myteam.players.length < squadSize &&  myteam.remainingPurse >= nextValidBid;
+    const nextValidBid = currentBid + minIncrement;
+    const canBid = user?.role === 'captain' && myteam && myteam.players.length < squadSize && myteam.remainingPurse >= nextValidBid;
 
-    const handleBid = () =>{
+    const handleBid = () => {
       setBidError('');
-      socket.emit('bid:place',{token,amount:nextValidBid});
+      socket.emit('bid:place', { token, amount: nextValidBid });
     }
 
     useEffect(() => {
@@ -46,6 +51,7 @@ const AuctionPage = () => {
             setPlayer(data.player);
             setCurrentBid(data.currentBid);
             setCurrentBidder(null);
+            setTimerEndsAt(data.timerEndsAt);
         });
 
         socket.on('auction:sync', (data) => {
@@ -53,17 +59,36 @@ const AuctionPage = () => {
                 setPlayer(data.player);
                 setCurrentBid(data.currentBid);
                 setCurrentBidder(data.currentBidder);
+                setTimerEndsAt(data.timerEndsAt);
             }
         });
 
         socket.on('auction:bidUpdate', (data) => {
           setCurrentBid(data.currentBid);
           setCurrentBidder(data.currentBidder);
+          setTimerEndsAt(data.timerEndsAt);
         });
 
-        socket.on('bid:rejected',(data)=>{
+        socket.on('bid:rejected', (data) => {
           setBidError(data.message);
-        })
+        });
+
+        socket.on('auction:playerSold', (data) => {
+          setTeams((prevTeams) =>
+            prevTeams
+              ? prevTeams.map((t) =>
+                  t._id === data.team._id
+                    ? { ...t, remainingPurse: t.remainingPurse - data.soldPrice, players: [...t.players, data.player._id] }
+                    : t
+                )
+              : prevTeams
+          );
+          setMyteam((prev) =>
+            prev && prev._id === data.team._id
+              ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player._id] }
+              : prev
+          );
+        });
 
         socket.emit('auction:requestSync');
 
@@ -72,6 +97,7 @@ const AuctionPage = () => {
             socket.off('auction:sync');
             socket.off('auction:bidUpdate');
             socket.off('bid:rejected');
+            socket.off('auction:playerSold');
         };
     }, []);
 
@@ -102,7 +128,7 @@ const AuctionPage = () => {
                 {player.pool}
               </span>
             )}
-
+            <CountdownTimer timerEndsAt={timerEndsAt} />
             <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
               <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
               <p className="font-display text-4xl text-[#f4b942] tabular-nums">₹{currentBid.toLocaleString()}</p>
@@ -116,12 +142,16 @@ const AuctionPage = () => {
             </div>
 
             {user?.role === 'captain' && (
-              <div className="mt-4">
-                {bidError && <p className="text-red-400 text-sm mb-2">{bidError}</p>}
+              <div className="mt-6 pt-6 border-t border-white/10">
+                {bidError && (
+                  <div className="mb-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                    {bidError}
+                  </div>
+                )}
                 <button
                   onClick={handleBid}
                   disabled={!canBid}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg text-lg"
+                  className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
                 >
                 Bid ₹{nextValidBid.toLocaleString()}
                 </button>
@@ -156,6 +186,34 @@ const AuctionPage = () => {
                 <p className="font-display text-xl text-white tabular-nums">{player.stats.strikeRate}</p>
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 max-w-2xl mx-auto">
+        <h2 className="font-display text-xl text-white tracking-tight mb-4">Teams</h2>
+        {!teams || teams.length === 0 ? (
+          <div className="flex items-center justify-center px-4 py-6 rounded-xl bg-[#0f1729] border border-white/10 border-dashed">
+            <p className="text-slate-500 text-sm">No teams to show yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {teams.map((team) => (
+              <div key={team._id} className="bg-[#0f1729] border border-white/10 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="shrink-0 w-7 h-7 rounded-full bg-[#f4b942]/15 text-[#f4b942] font-display font-semibold text-xs flex items-center justify-center">
+                    {team.name?.charAt(0).toUpperCase()}
+                  </span>
+                  <p className="text-white font-semibold text-sm truncate">{team.name}</p>
+                </div>
+                <p className="text-slate-400 text-xs">
+                  Purse: <span className="text-[#f4b942] font-display tabular-nums">₹{team.remainingPurse.toLocaleString()}</span>
+                </p>
+                <p className="text-slate-500 text-xs mt-1">
+                  Squad: <span className="tabular-nums">{team.players.length}/{squadSize}</span>
+                </p>
+              </div>
+            ))}
           </div>
         )}
       </div>

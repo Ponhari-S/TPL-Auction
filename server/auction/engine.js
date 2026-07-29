@@ -16,6 +16,25 @@ const scheduleTimer = (durationMx)=>{
     currentTimer=setTimeout(handleTimeout,durationMx);
 }
 
+let pausedTimeRemaining = null;
+
+const pauseTimer = () => {
+  if (currentTimer) {
+    clearTimeout(currentTimer);
+    currentTimer = null;
+  }
+};
+
+const resumeTimer = async () => {
+  const state = await AuctionState.findById('singleton');
+  if (!state.currentPlayer || !state.timerEndsAt) return;
+
+  const remaining = new Date(state.timerEndsAt).getTime() - Date.now();
+  const durationMs = remaining > 0 ? remaining : 1000;
+
+  currentTimer = setTimeout(handleTimerExpiry, durationMs);
+};
+
 const startNextPlayer = async() =>{
     const state=await AuctionState.findById('singleton');
     if(!state.playerQueue || state.playerQueue.length===0){
@@ -153,4 +172,4 @@ const placeBid = async (userId,amount)=>{
     return { success: true };
 };
 
-module.exports={initEngine,startNextPlayer,placeBid};
+module.exports={initEngine,startNextPlayer,placeBid,pauseTimer,resumeTimer};

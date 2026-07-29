@@ -65,3 +65,6 @@ TPL-AUCTION
 
 -Display current price + current bidding team, live via socket
 -Bid button for captains, disabled states
+
+-Countdown timer UI component, synced with server
+-Remaining purse display per team, live update on bid

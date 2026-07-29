@@ -3,7 +3,7 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const express = require('express');
 const Player = require('../models/Player');
-const { startNextPlayer } = require('../auction/engine');
+const { startNextPlayer, resumeTimer, pauseTimer } = require('../auction/engine');
 
 const router = express.Router();
 
@@ -88,6 +88,7 @@ router.put('/pause',async (req,res)=>{
         }
         state.status='paused';
         await state.save();
+        pauseTimer();
         res.json(state);
     }
     catch(err){
@@ -103,6 +104,7 @@ router.put('/resume',async (req,res)=>{
         }
         state.status='live';
         await state.save();
+        resumeTimer();
         res.json(state);
     }
     catch(err){
