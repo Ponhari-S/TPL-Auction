@@ -16,6 +16,7 @@ const AuctionPage = () => {
     const [bidError, setBidError] = useState("");
     const [squadSize, setSquadSize] = useState(6);
     const [timerEndsAt, setTimerEndsAt] = useState(null);
+    const [myTeamId, setMyTeamId] = useState(null);
 
     useEffect(() => {
       const fetchInfo = async () => {
@@ -29,6 +30,11 @@ const AuctionPage = () => {
           if (user?.role === 'captain') {
             const team = teamRes.data.find((t) => t.captain._id === user._id || t.captain === user._id);
             setMyteam(team || null);
+            setMyTeamId(team._id || null);
+          }
+          if (user?.role === 'player') {
+            const profileRes = await api.get('/players/me/profile');
+            setMyTeamId(profileRes.data.soldTo || profileRes.data.retainedBy || null);
           }
         }
         catch (err) {
@@ -78,17 +84,24 @@ const AuctionPage = () => {
             prevTeams
               ? prevTeams.map((t) =>
                   t._id === data.team._id
-                    ? { ...t, remainingPurse: t.remainingPurse - data.soldPrice, players: [...t.players, data.player._id] }
+                    ? { ...t, remainingPurse: t.remainingPurse - data.soldPrice, players: [...t.players, data.player] }
                     : t
                 )
               : prevTeams
           );
           setMyteam((prev) =>
             prev && prev._id === data.team._id
-              ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player._id] }
+              ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player] }
               : prev
           );
         });
+
+        socket.on('auction:ended', (data) => {
+          setPlayer(null);
+          setCurrentBid(0);
+          setCurrentBidder(null);
+          setTimerEndsAt(null);
+        })
 
         socket.emit('auction:requestSync');
 
@@ -98,6 +111,7 @@ const AuctionPage = () => {
             socket.off('auction:bidUpdate');
             socket.off('bid:rejected');
             socket.off('auction:playerSold');
+            socket.off('auction:ended');
         };
     }, []);
 
@@ -198,22 +212,50 @@ const AuctionPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {teams.map((team) => (
-              <div key={team._id} className="bg-[#0f1729] border border-white/10 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="shrink-0 w-7 h-7 rounded-full bg-[#f4b942]/15 text-[#f4b942] font-display font-semibold text-xs flex items-center justify-center">
-                    {team.name?.charAt(0).toUpperCase()}
-                  </span>
-                  <p className="text-white font-semibold text-sm truncate">{team.name}</p>
+            {teams.map((team) => {
+              const isMyTeam = user?.role === 'admin' || (myTeamId && team._id === myTeamId);
+              return (
+                <div
+                  key={team._id}
+                  className={`rounded-xl p-4 border ${
+                    isMyTeam
+                      ? "bg-[#f4b942]/5 border-[#f4b942]/30"
+                      : "bg-[#0f1729] border-white/10"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="shrink-0 w-7 h-7 rounded-full bg-[#f4b942]/15 text-[#f4b942] font-display font-semibold text-xs flex items-center justify-center">
+                        {team.name?.charAt(0).toUpperCase()}
+                      </span>
+                      <p className="text-white font-semibold text-sm truncate">{team.name}</p>
+                    </div>
+                    {isMyTeam && (
+                      <span className="shrink-0 text-[#f4b942] text-[10px] uppercase tracking-wider font-display">
+                        Yours
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-slate-400 text-xs">
+                    Purse: <span className="text-[#f4b942] font-display tabular-nums">₹{team.remainingPurse.toLocaleString()}</span>
+                  </p>
+                  <p className="text-slate-500 text-xs mt-1 mb-2">
+                    Squad: <span className="tabular-nums">{team.players.length}/{squadSize}</span>
+                  </p>
+
+                  {isMyTeam && team.players.length > 0 && (
+                    <ul className="border-t border-white/10 pt-2 mt-2 space-y-1">
+                      {team.players.map((p) => (
+                        <li key={p._id} className="text-slate-400 text-xs truncate">
+                          {p.name} <span className="text-slate-600 capitalize">({p.role})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                <p className="text-slate-400 text-xs">
-                  Purse: <span className="text-[#f4b942] font-display tabular-nums">₹{team.remainingPurse.toLocaleString()}</span>
-                </p>
-                <p className="text-slate-500 text-xs mt-1">
-                  Squad: <span className="tabular-nums">{team.players.length}/{squadSize}</span>
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

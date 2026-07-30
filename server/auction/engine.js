@@ -32,7 +32,7 @@ const resumeTimer = async () => {
   const remaining = new Date(state.timerEndsAt).getTime() - Date.now();
   const durationMs = remaining > 0 ? remaining : 1000;
 
-  currentTimer = setTimeout(handleTimerExpiry, durationMs);
+  currentTimer = setTimeout(handleTimeout, durationMs);
 };
 
 const startNextPlayer = async() =>{

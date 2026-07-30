@@ -68,3 +68,6 @@ TPL-AUCTION
 
 -Countdown timer UI component, synced with server
 -Remaining purse display per team, live update on bid
+
+-Live squad list sidebar for each team during auction
+-Style polish Auction page, check responsive layout
