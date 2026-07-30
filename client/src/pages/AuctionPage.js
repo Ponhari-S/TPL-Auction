@@ -245,7 +245,7 @@ const AuctionPage = () => {
                     Squad: <span className="tabular-nums">{team.players.length}/{squadSize}</span>
                   </p>
 
-                  {isMyTeam && team.players.length > 0 && (
+                  {team.players.length > 0 && (
                     <ul className="border-t border-white/10 pt-2 mt-2 space-y-1">
                       {team.players.map((p) => (
                         <li key={p._id} className="text-slate-400 text-xs truncate">
