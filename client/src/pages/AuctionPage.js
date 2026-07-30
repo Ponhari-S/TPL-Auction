@@ -23,6 +23,7 @@ const AuctionPage = () => {
         try {
           const rulesRes = await api.get('auction/rules');
           setMinIncrement(rulesRes.data.minIncrement);
+          setSquadSize(6);
 
           const teamRes = await api.get('/teams');
           setTeams(teamRes.data);
