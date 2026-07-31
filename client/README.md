@@ -71,3 +71,6 @@ TPL-AUCTION
 
 -Live squad list sidebar for each team during auction
 -Style polish Auction page, check responsive layout
+
+-Get Gemini API key, test a basic call with sample stats
+-Write prompt to generate overall rating from bat/bowl/field stats
