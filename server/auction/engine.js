@@ -1,6 +1,7 @@
 const AuctionState = require('../models/AuctionState');
 const Player = require('../models/Player');
 const Team = require('../models/Team');
+const mongoose = require('mongoose');
 
 let ioInstance = null;
 let currentTimer = null;
@@ -73,25 +74,36 @@ const handleTimeout=async ()=>{
     const state=await AuctionState.findById('singleton');
     const player=await Player.findById(state.currentPlayer);
     if(state.currentBidder){
-        const team=await Team.findById(state.currentBidder);
-        player.status='sold';
-        player.soldTo=team._id;
-        player.soldPrice=state.currentBid;
-        await player.save();
+        const session=await mongoose.startSession();
+        try{
+            await session.withTransaction(async() =>{
+                const team=await Team.findById(state.currentBidder).session(session);
+                player.status='sold';
+                player.soldTo=team._id;
+                player.soldPrice=state.currentBid;
+                await player.save({session});
 
-        team.remainingPurse -= state.currentBid;
-        team.players.push(player._id);
-        await team.save();
-
-        ioInstance.emit('auction:playerSold',{
-            player,
-            team: {
-                _id: team._id,
-                name: team.name
-            },
-            soldPrice: state.currentBid
-        });
-        console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
+                team.remainingPurse -= state.currentBid;
+                team.players.push(player._id);
+                await team.save({session});
+            });
+            const team = await Team.findById(state.currentBidder);
+            ioInstance.emit('auction:playerSold',{
+                player,
+                team: {
+                    _id: team._id,
+                    name: team.name
+                },
+                soldPrice: state.currentBid
+            });
+            console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
+        }
+        catch(transactionErr){
+            console.error('Sale transaction failed:', transactionErr.message);
+        }
+        finally{
+            await session.endSession();
+        }
     }
     else{
         if(player.status==='unsold'){
@@ -102,14 +114,24 @@ const handleTimeout=async ()=>{
             console.log(`UNSOLD-FINAL: ${player.name}`);
         }
         else{
-            player.status='unsold';
-            await player.save();
+            const session = await mongoose.startSession();
+            try{
+                await session.withTransaction(async () => {
+                    player.status='unsold';
+                    await player.save({session});
 
-            state.playerQueue.push(player._id);
-            await state.save();
-
-            ioInstance.emit('auction:playerUnsold',{player});
-            console.log(`UNSOLD : ${player.name}`);
+                    state.playerQueue.push(player._id);
+                    await state.save({session});
+                });
+                ioInstance.emit('auction:playerUnsold',{player});
+                console.log(`UNSOLD : ${player.name}`);
+            }
+            catch(transactionErr){
+                console.log('Requeue transaction failed:', transactionErr.message);
+            }
+            finally{
+                await session.endSession();
+            }
         }
     }
     await startNextPlayer();

@@ -4,12 +4,22 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const Team = require("../models/Team");
 const AuctionState = require("../models/AuctionState");
+const { getRating, ratingToPool } = require('../gemini/rating');
 
 const router=express.Router();
 
 router.post('/',protect,isAdmin,async(req,res)=>{
     try{
         const player=await Player.create(req.body);
+        try{
+            const rating = await getRating(player);
+            player.overallRating = rating;
+            player.pool = ratingToPool(rating);
+            await player.save();
+        }
+        catch(ratingErr){
+            console.log(`Rating failed for ${player.name}:`, ratingErr.message);
+        }
         res.status(201).json(player);
     }
     catch(err){
@@ -62,7 +72,33 @@ router.put('/:id',protect,isAdmin,async(req,res)=>{
         if(!player){
             return res.status(404).json({message:"Player not found"});
         }
+        try{
+            const rating = await getRating(player);
+            player.overallRating = rating;
+            player.pool = ratingToPool(rating);
+            await player.save();
+        }
+        catch(ratingErr){
+            console.log(`Rating update failed for ${player.name}:`, ratingErr.message);
+        }
         res.status(200).json(player);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+});
+
+router.put('/:id/rate',protect,isAdmin,async (req,res)=>{
+    try{
+        const player=await Player.findById(req.params.id);
+        if(!player){
+            return res.status(404).json({message:"Player not found"});
+        }
+        const rating = await getRating(player);
+        player.overallRating = rating;
+        player.pool = ratingToPool(rating);
+        await player.save();
+        res.json(player);
     }
     catch(err){
         res.status(500).json({message:err.message});

@@ -74,3 +74,9 @@ TPL-AUCTION
 
 -Get Gemini API key, test a basic call with sample stats
 -Write prompt to generate overall rating from bat/bowl/field stats
+
+-Integrate Gemini call into the player seeding script (cache rating in DB)
+-Display cached rating on Player Info + Auction page
+-Refine sold logic: update player price/team atomically
+-Refine unsold requeue: verify correct end-of-queue placement
+

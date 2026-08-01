@@ -73,6 +73,18 @@ const PlayerInfo = () => {
                     <span className="inline-block mt-2 px-3 py-1 rounded-full bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs uppercase tracking-wider capitalize">
                         {player.role}
                     </span>
+                    {player.overallRating && (
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className="bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-sm font-display px-3 py-1 rounded-full">
+                            ★ {player.overallRating}/10
+                            </span>
+                            {player.pool && (
+                            <span className="bg-white/5 border border-white/10 text-slate-400 text-xs px-3 py-1 rounded-full capitalize">
+                                {player.pool}
+                            </span>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <span className={`px-3 py-1 rounded-full border text-xs uppercase tracking-wider capitalize whitespace-nowrap ${statusStyles[player.status] || "bg-white/5 text-slate-300 border-white/10"}`}>
                     {player.status}

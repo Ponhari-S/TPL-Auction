@@ -143,6 +143,11 @@ const AuctionPage = () => {
                 {player.pool}
               </span>
             )}
+            {player.overallRating && (
+              <span className="inline-block bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs px-3 py-1 rounded-full capitalize mt-2 tracking-wide">
+                ★ {player.overallRating}/10
+              </span>
+            )}
             <CountdownTimer timerEndsAt={timerEndsAt} />
             <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
               <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
