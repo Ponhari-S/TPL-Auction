@@ -80,3 +80,5 @@ TPL-AUCTION
 -Refine sold logic: update player price/team atomically
 -Refine unsold requeue: verify correct end-of-queue placement
 
+-View Team page layout: fetch and display squad
+-Handle "no team assigned" error state
