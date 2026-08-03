@@ -4,6 +4,7 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const Team = require("../models/Team");
 const AuctionState = require("../models/AuctionState");
+const mongoose = require('mongoose');
 const { getRating, ratingToPool } = require('../gemini/rating');
 
 const router=express.Router();
@@ -178,6 +179,50 @@ router.put('/:id/retain',protect,async (req,res)=>{
         await team.save();
 
         res.json(player);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+});
+
+router.put("/:id/release",protect,async(req,res)=>{
+    try{
+        const player = await Player.findById(req.params.id);
+        if(!player){
+            return res.status(404).json({ message: 'Player not found' });
+        }
+        const teamId = player.soldTo || player.retainedBy;
+        if(!teamId){
+            return res.status(400).json({ message: 'This player is not on any team' });
+        }
+        const team=await Team.findById(teamId);
+        if(!team){
+            return res.status(404).json({ message: 'Team not found' });
+        }
+        if(team.captain.toString()!==req.user.id){
+            return res.status(403).json({ message: 'Only the captain can release a player' });
+        }
+        const refund = player.soldPrice || player.retentionPrice || 0;
+        const session=await mongoose.startSession();
+        try{
+            await session.withTransaction(async()=>{
+                team.purse+=refund;
+                team.players =  team.players.some((p)=>p.toString() !== player._id.toString());
+                await team.save({session});
+
+                player.status='unsold-final';
+                player.soldTo=null;
+                player.soldPrice=null;
+                player.retainedBy=null;
+                player.retentionPrice=null;
+                await player.save({session});
+            });
+
+            res.json({ message: `${player.name} released, ₹${refundAmount} refunded to purse` });
+        }
+        finally{
+            await session.endSession();
+        }
     }
     catch(err){
         res.status(500).json({message:err.message});

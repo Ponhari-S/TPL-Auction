@@ -4,6 +4,10 @@ import Header from '../components/Header';
 import api from '../api/axios';
 
 function ViewTeam() {
+  const [showGiveCaptaincy, setShowGiveCaptaincy] = useState(false);
+  const [transferError, setTransferError] = useState("");
+  const [confirmingRelease, setConfirmingRelease] = useState(null);
+  const [releaseMessage, setReleaseMessage] = useState("");
   const { user } = useSelector((state) => state.auth);
   const [team, setTeam] = useState(null);
   const [error, setError] = useState('');
@@ -43,6 +47,31 @@ function ViewTeam() {
     fetchTeam();
   }, [user]);
 
+  const isMyTeamCaptain = user?.role === 'captain' && team;
+
+  const handleGiveCaptaincy = async (playerId) => {
+    setTransferError("");
+    try {
+      await api.put(`/teams/${team._id}/give-captaincy`, { playerId });
+      window.location.reload();
+    }
+    catch (err) {
+      setTransferError(err.response?.data?.message || 'Failed to transfer captaincy');
+    }
+  }
+
+  const handleRelease = async (playerId) => {
+    try {
+      const res = await api.put(`/players/${playerId}/release`);
+      setReleaseMessage(res.data.message);
+      setConfirmingRelease(null);
+      window.location.reload();
+    }
+    catch (err) {
+      setReleaseMessage(err.response?.data?.message || 'Failed to release player');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
       <style>{`
@@ -75,9 +104,42 @@ function ViewTeam() {
                 </p>
               </div>
             </div>
+
             <h2 className="font-display text-lg text-white tracking-tight mb-3">
               Squad ({team.players.length})
             </h2>
+
+            {isMyTeamCaptain && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setShowGiveCaptaincy(!showGiveCaptaincy)}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Give Captaincy
+                </button>
+              </div>
+            )}
+
+            {showGiveCaptaincy && (
+              <div className="mb-4 bg-white/5 border border-white/10 rounded-lg p-3">
+                {transferError && (
+                  <p className="text-red-400 text-xs mb-2">{transferError}</p>
+                )}
+                <p className="text-slate-400 text-xs mb-2">Select a player to make captain:</p>
+                <div className="flex flex-col gap-1">
+                  {team.players.map((p) => (
+                    <button
+                      key={p._id}
+                      onClick={() => handleGiveCaptaincy(p._id)}
+                      className="text-left text-slate-300 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/5"
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {team.players.length === 0 ? (
               <p className="text-slate-500 text-sm">No players yet.</p>
             ) : (
@@ -91,6 +153,34 @@ function ViewTeam() {
                     )}
                     {p.retentionPrice && (
                       <p className="text-[#f4b942] text-xs font-display tabular-nums mt-1">₹{p.retentionPrice.toLocaleString()} (retained)</p>
+                    )}
+
+                    {isMyTeamCaptain && (
+                      <div className="mt-2">
+                        {confirmingRelease === p._id ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRelease(p._id)}
+                              className="text-red-400 hover:text-red-300 text-xs"
+                            >
+                              Confirm release
+                            </button>
+                            <button
+                              onClick={() => setConfirmingRelease(null)}
+                              className="text-slate-500 hover:text-slate-400 text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmingRelease(p._id)}
+                            className="text-slate-500 hover:text-red-400 text-xs"
+                          >
+                            Release
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}

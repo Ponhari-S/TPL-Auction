@@ -3,6 +3,7 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
+const Player = require('../models/Player');
 
 const router = express.Router();
 
@@ -116,5 +117,38 @@ router.delete('/:id',protect,isAdmin,async (req,res)=>{
         res.status(500).json({message:err.message});
     }
 });
+
+router.put('/:id/give-captaincy',protect,async (req,res)=>{
+    try{
+        const {playerId} = req.body;
+        if(!playerId){
+            return res.status(400).json({ message: 'playerId is required' });
+        }
+        const team = await Team.findById(req.params.id);
+        if(!team){
+            return res.status(404).json({ message: 'Team not found' });
+        }
+        if(team.captain.toString()!==req.user.id){
+            return res.status(403).json({ message: 'Only the current captain can transfer captaincy' });
+        }
+        const isOnTeam = team.players.some((p)=>p.toString()===playerId);
+        if(!isOnTeam){
+            return res.status(400).json({ message: 'That player is not on your squad' });
+        }
+        const player = await Player.findById(playerId);
+        if(!player || !player.user){
+            return res.status(400).json({ message: 'This player has no linked user account' });
+        }
+        team.captain=player.user;
+        await team.save();
+
+        await User.findByIdAndUpdate(req.user.id,{role:"player"});
+        await User.findByIdAndUpdate(player.user,{role:"captain"});
+        res.json(team);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+})
 
 module.exports = router;

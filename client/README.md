@@ -82,3 +82,6 @@ TPL-AUCTION
 
 -View Team page layout: fetch and display squad
 -Handle "no team assigned" error state
+
+-Captain view: add "Give Captaincy" button + API
+-Add "Release Player" button + confirmation modal + API
