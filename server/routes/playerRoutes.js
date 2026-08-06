@@ -206,8 +206,8 @@ router.put("/:id/release",protect,async(req,res)=>{
         const session=await mongoose.startSession();
         try{
             await session.withTransaction(async()=>{
-                team.purse+=refund;
-                team.players =  team.players.some((p)=>p.toString() !== player._id.toString());
+                team.remainingPurse+=refund;
+                team.players =  team.players.filter((p)=>p.toString() !== player._id.toString());
                 await team.save({session});
 
                 player.status='unsold-final';
@@ -218,7 +218,7 @@ router.put("/:id/release",protect,async(req,res)=>{
                 await player.save({session});
             });
 
-            res.json({ message: `${player.name} released, ₹${refundAmount} refunded to purse` });
+            res.json({ message: `${player.name} released, ₹${refund} refunded to purse` });
         }
         finally{
             await session.endSession();
