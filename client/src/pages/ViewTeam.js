@@ -72,6 +72,12 @@ function ViewTeam() {
     }
   }
 
+  const totalSpent = team ? team.players.reduce((sum, p) => sum + (p.soldPrice || p.retentionPrice || 0), 0) : 0;
+  const roleBreakdown = team ? team.players.reduce((acc, p) => {
+    acc[p.role] = (acc[p.role] || 0) + 1;
+    return acc;
+  }, {}) : {};
+
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
       <style>{`
@@ -102,6 +108,26 @@ function ViewTeam() {
                 <p className="text-slate-500 text-sm">
                   Purse remaining: <span className="text-[#f4b942] font-display tabular-nums">₹{team.remainingPurse.toLocaleString()}</span>
                 </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Total Spent</p>
+                <p className="font-display text-lg text-[#f4b942] tabular-nums">₹{totalSpent.toLocaleString()}</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">By Role</p>
+                <div className="flex flex-wrap gap-1">
+                  {Object.entries(roleBreakdown).map(([role, count]) => (
+                    <span key={role} className="text-slate-300 text-xs bg-white/5 border border-white/10 px-2 py-0.5 rounded-full capitalize">
+                      {role}: {count}
+                    </span>
+                  ))}
+                  {Object.keys(roleBreakdown).length === 0 && (
+                    <span className="text-slate-600 text-xs">No players yet</span>
+                  )}
+                </div>
               </div>
             </div>
 
