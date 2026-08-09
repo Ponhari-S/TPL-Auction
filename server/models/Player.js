@@ -57,7 +57,16 @@ const playerSchema = new mongoose.Schema({
     retentionPrice:{
         type:Number,
         default:null
-    }
+    },
+    previouslyReleasedBy:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Team',
+        default:null
+    },
+    rtmUsedBy:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Team'
+    }]
 },
 {timestamps: true});
 

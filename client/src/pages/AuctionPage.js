@@ -17,6 +17,24 @@ const AuctionPage = () => {
     const [squadSize, setSquadSize] = useState(6);
     const [timerEndsAt, setTimerEndsAt] = useState(null);
     const [myTeamId, setMyTeamId] = useState(null);
+    const [rtmEligible,setRtmEligible] = useState(false);
+
+    useEffect(()=>{
+      const checkEligible = async () => {
+        if(!player || user?.role!=='captain'){
+          setRtmEligible(false);
+          return;
+        }
+        try{
+          const res = await api.get(`/players/${player._id}/rtm-eligible`);
+          setRtmEligible(res.data.eligible);
+        }
+        catch(err){
+          setRtmEligible(false);
+        }
+      }
+      checkEligible();
+    },[player,user]);
 
     useEffect(() => {
       const fetchInfo = async () => {
@@ -175,6 +193,22 @@ const AuctionPage = () => {
                 >
                 Bid ₹{nextValidBid.toLocaleString()}
                 </button>
+                {rtmEligible && (
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <p className="text-slate-500 text-xs mb-2 text-center">
+                      You previously released this player — you can match the winning bid.
+                    </p>
+                    <button
+                      disabled
+                      className="w-full bg-white/5 border border-white/10 text-slate-400 font-display font-semibold text-sm py-2.5 rounded-lg cursor-not-allowed tracking-wide flex items-center justify-center gap-2"
+                    >
+                      Right to Match
+                      <span className="text-[10px] uppercase tracking-wider bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] px-2 py-0.5 rounded-full">
+                        Coming Day 66
+                      </span>
+                    </button>
+                  </div>
+                )}
                 {myteam && myteam.players.length >= squadSize && (
                   <p className="text-slate-500 text-xs mt-2 text-center">Your squad is full</p>
                 )}

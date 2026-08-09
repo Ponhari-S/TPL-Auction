@@ -213,6 +213,7 @@ router.put("/:id/release",protect,async(req,res)=>{
                 player.status='unsold-final';
                 player.soldTo=null;
                 player.soldPrice=null;
+                player.previouslyReleasedBy=teamId;
                 player.retainedBy=null;
                 player.retentionPrice=null;
                 await player.save({session});
@@ -228,5 +229,28 @@ router.put("/:id/release",protect,async(req,res)=>{
         res.status(500).json({message:err.message});
     }
 });
+
+router.get('/:id/rtm-eligible',protect,async(req,res)=>{
+    try{
+        if(req.user.role!=='captain'){
+            return res.json({ eligible: false });
+        }
+        const player = await Player.findById(req.params.id);
+        if(!player || !player.previouslyReleasedBy){
+            return res.json({eligible:false});
+        }
+        const team=await Team.findOne({captain:req.user.id});
+        if(!team){
+            return res.json({eligible:false});
+        }
+        const isFormerTeam = player.previouslyReleasedBy.toString()===team._id.toString();
+        const alreadyUsed = player.rtmUsedBy.some((p)=>p.toString()===team._id.toString());
+
+        res.json({eligible: isFormerTeam && !alreadyUsed, teamId: team._id});
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+})
 
 module.exports=router;

@@ -85,3 +85,8 @@ TPL-AUCTION
 
 -Captain view: add "Give Captaincy" button + API
 -Add "Release Player" button + confirmation modal + API
+
+-Squad stats summary
+
+-Add "previously released by" tracking to Player schema
+-Add RTM button UI on Auction page
