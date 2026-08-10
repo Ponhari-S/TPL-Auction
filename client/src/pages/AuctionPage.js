@@ -122,6 +122,12 @@ const AuctionPage = () => {
           setTimerEndsAt(null);
         })
 
+        socket.on('auction:rtmUsed',(data)=>{
+          setCurrentBid(data.currentBid);
+          setCurrentBidder(data.currentBidder);
+          setTimerEndsAt(data.timerEndsAt);
+        });
+
         socket.emit('auction:requestSync');
 
         return () => {
@@ -131,6 +137,7 @@ const AuctionPage = () => {
             socket.off('bid:rejected');
             socket.off('auction:playerSold');
             socket.off('auction:ended');
+            socket.off('auction:rtmUsed');
         };
     }, []);
 
@@ -198,14 +205,10 @@ const AuctionPage = () => {
                     <p className="text-slate-500 text-xs mb-2 text-center">
                       You previously released this player — you can match the winning bid.
                     </p>
-                    <button
-                      disabled
+                    <button onClick={() => socket.emit('rtm:use', { token })}
                       className="w-full bg-white/5 border border-white/10 text-slate-400 font-display font-semibold text-sm py-2.5 rounded-lg cursor-not-allowed tracking-wide flex items-center justify-center gap-2"
                     >
-                      Right to Match
-                      <span className="text-[10px] uppercase tracking-wider bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] px-2 py-0.5 rounded-full">
-                        Coming Day 66
-                      </span>
+                      Match Bid (₹{currentBid.toLocaleString()})
                     </button>
                   </div>
                 )}

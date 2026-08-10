@@ -90,3 +90,5 @@ TPL-AUCTION
 
 -Add "previously released by" tracking to Player schema
 -Add RTM button UI on Auction page
+
+-RTM API logic: override winning bid, one-time-use flag per team

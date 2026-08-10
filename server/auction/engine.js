@@ -194,4 +194,44 @@ const placeBid = async (userId,amount)=>{
     return { success: true };
 };
 
-module.exports={initEngine,startNextPlayer,placeBid,pauseTimer,resumeTimer};
+const useRtm = async (userId) => {
+    const state = await AuctionState.findById('singleton');
+    if(state.status!=='live' || !state.currentPlayer){
+        return { success: false, message: 'Auction is not live' };
+    }
+    const team = await Team.findOne({captain:userId});
+    if(!team){
+        return { success: false, message: 'You do not own a team' };
+    }
+    const player = await Player.findById(state.currentPlayer);
+    if(!player.previouslyReleasedBy || player.previouslyReleasedBy.toString()!==team._id.toString()){
+        return { success: false, message: 'You are not eligible to RTM this player' };
+    }
+    const alreadyUsed = player.rtmUsedBy.some((p)=>p.toString()===team._id.toString());
+    if(alreadyUsed){
+        return { success: false, message: 'You have already used RTM on this player' };
+    }
+    if(team.players.length>=state.squadSize){
+        return { success: false, message: 'Your squad is already full' };
+    }
+    if(state.currentBid>team.remainingPurse){
+        return { success: false, message: 'Insufficient purse to match this bid' };
+    }
+    const updatedState = await AuctionState.findOneAndUpdate({_id:'singleton',currentPlayer:state.currentPlayer},{currentBidder:team._id},{new: true});
+    if(!updatedState){
+        return { success: false, message: 'Player changed before RTM could be applied' };
+    }
+    player.rtmUsedBy.push(team._id);
+    await player.save();
+
+    scheduleTimer(15000);
+    ioInstance.emit('auction:rtmUsed',{
+        currentBid:updatedState.currentBid,
+        currentBidder:{_id:team._id,name:team.name},
+        timerEndsAt: new Date(Date.now() + 15000)
+    });
+    console.log(`RTM: ${team.name} matched bid for player ${state.currentPlayer}`);
+    return {success:true};
+}
+
+module.exports={initEngine,startNextPlayer,placeBid,pauseTimer,resumeTimer,useRtm};
