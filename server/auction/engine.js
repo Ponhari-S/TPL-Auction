@@ -214,6 +214,9 @@ const useRtm = async (userId) => {
     if(team.players.length>=state.squadSize){
         return { success: false, message: 'Your squad is already full' };
     }
+    if (!state.currentBidder) {
+        return { success: false, message: 'No bid to match yet' };
+    }
     if(state.currentBid>team.remainingPurse){
         return { success: false, message: 'Insufficient purse to match this bid' };
     }

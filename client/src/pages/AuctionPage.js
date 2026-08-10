@@ -200,7 +200,7 @@ const AuctionPage = () => {
                 >
                 Bid ₹{nextValidBid.toLocaleString()}
                 </button>
-                {rtmEligible && (
+                {rtmEligible && currentBidder && (
                   <div className="mt-6 pt-6 border-t border-white/10">
                     <p className="text-slate-500 text-xs mb-2 text-center">
                       You previously released this player — you can match the winning bid.
