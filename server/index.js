@@ -16,6 +16,7 @@ const playerRoutes=require('./routes/playerRoutes');
 const teamRoutes=require('./routes/teamRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
 const Player = require('./models/Player');
+const tradeRoutes = require('./routes/tradeRoutes');
 
 connectDB();
 
@@ -27,6 +28,7 @@ app.use('/api/auth',authRoutes);
 app.use('/api/players',playerRoutes);
 app.use('/api/teams',teamRoutes);
 app.use('/api/auction',auctionRoutes);
+app.use('/api/trades',tradeRoutes);
 
 app.get('/api/test-protected',protect,(req,res)=>{
     res.status(200).json({message:"You are Authorized!!",user:req.user});

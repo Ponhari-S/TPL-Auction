@@ -200,13 +200,13 @@ const AuctionPage = () => {
                 >
                 Bid ₹{nextValidBid.toLocaleString()}
                 </button>
-                {rtmEligible && currentBidder && (
+                {rtmEligible && currentBidder && currentBidder._id !== myTeamId && (
                   <div className="mt-6 pt-6 border-t border-white/10">
                     <p className="text-slate-500 text-xs mb-2 text-center">
                       You previously released this player — you can match the winning bid.
                     </p>
                     <button onClick={() => socket.emit('rtm:use', { token })}
-                      className="w-full bg-white/5 border border-white/10 text-slate-400 font-display font-semibold text-sm py-2.5 rounded-lg cursor-not-allowed tracking-wide flex items-center justify-center gap-2"
+                      className="w-full bg-white/5 border border-white/10 text-slate-400 font-display font-semibold text-sm py-2.5 rounded-lg tracking-wide flex items-center justify-center gap-2"
                     >
                       Match Bid (₹{currentBid.toLocaleString()})
                     </button>

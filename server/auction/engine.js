@@ -214,6 +214,11 @@ const useRtm = async (userId) => {
     if(team.players.length>=state.squadSize){
         return { success: false, message: 'Your squad is already full' };
     }
+
+    if (state.currentBidder.toString() === team._id.toString()) {
+        return { success: false, message: 'You are already the highest bidder' };
+    }
+
     if (!state.currentBidder) {
         return { success: false, message: 'No bid to match yet' };
     }
@@ -227,7 +232,7 @@ const useRtm = async (userId) => {
     player.rtmUsedBy.push(team._id);
     await player.save();
 
-    scheduleTimer(15000);
+    scheduleTimer(0);
     ioInstance.emit('auction:rtmUsed',{
         currentBid:updatedState.currentBid,
         currentBidder:{_id:team._id,name:team.name},
