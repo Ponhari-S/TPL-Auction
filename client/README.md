@@ -92,3 +92,7 @@ TPL-AUCTION
 -Add RTM button UI on Auction page
 
 -RTM API logic: override winning bid, one-time-use flag per team
+-Broadcast RTM event via socket, update UI for all captains
+
+-Trade request schema
+-Trade request UI: select player/team, send request
