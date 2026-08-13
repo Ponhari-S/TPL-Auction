@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Header from '../components/Header';
 import ProposeTrade from '../components/ProposeTrade';
+import IncomingTrades from '../components/IncomingTrades';
 import api from '../api/axios';
 
 function ViewTeam() {
@@ -213,6 +214,7 @@ function ViewTeam() {
                 ))}
               </div>
             )}
+            {isMyTeamCaptain && <IncomingTrades />}
             {isMyTeamCaptain && <ProposeTrade myTeam={team}/>}
           </div>
         )}

@@ -96,3 +96,5 @@ TPL-AUCTION
 
 -Trade request schema
 -Trade request UI: select player/team, send request
+
+-Notification system: receiving team sees incoming trade request
