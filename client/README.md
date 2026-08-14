@@ -98,3 +98,5 @@ TPL-AUCTION
 -Trade request UI: select player/team, send request
 
 -Notification system: receiving team sees incoming trade request
+-Accept/Reject API + UI
+-Admin approval step before DB finalization
