@@ -5,6 +5,7 @@ import AuctionRules from '../components/AuctionRules';
 import BuildQueue from '../components/BuildQueue';
 import AuctionControls from '../components/AuctionControls';
 import SocketTest from '../components/SocketTest';
+import PendingTrades from '../components/PendingTrades';
 
 const AdminDashboard = () => {
     const user = useSelector((state)=>state.auth.user);
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
         <AuctionRules />
         <BuildQueue />
         <AuctionControls />
+        <PendingTrades />
         <SocketTest />
       </div>
     </div>

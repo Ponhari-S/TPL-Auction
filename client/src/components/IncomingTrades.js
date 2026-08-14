@@ -13,9 +13,30 @@ const IncomingTrades = () => {
 
         }
     }
+
     useEffect(() => {
         fetchTrades();
     }, []);
+
+    const handleAccept = async(id) =>{
+      try{
+        await api.put(`/trades/${id}/accept`);
+        fetchTrades();
+      }
+      catch(err){
+        console.log(err.message);
+      }
+    };
+
+    const handleReject = async (id) => {
+      try{
+        await api.put(`/trades/${id}/reject`);
+        fetchTrades();
+      }
+      catch(err){
+        console.log(err.message);
+      }
+    };
 
     if (trades.length === 0) return null;
 
@@ -42,6 +63,20 @@ const IncomingTrades = () => {
                 {trade.offeredPlayer && trade.offeredPurse > 0 && ' + '}
                 {trade.offeredPurse > 0 && `₹${trade.offeredPurse.toLocaleString()}`}
             </p>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => handleAccept(trade._id)}
+                className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => handleReject(trade._id)}
+                className="bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 text-xs font-semibold px-3 py-1.5 rounded"
+              >
+                Reject
+              </button>
+            </div>
           </div>
         ))}
       </div>
