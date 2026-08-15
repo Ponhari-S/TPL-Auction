@@ -100,3 +100,6 @@ TPL-AUCTION
 -Notification system: receiving team sees incoming trade request
 -Accept/Reject API + UI
 -Admin approval step before DB finalization
+
+-Post-auction summary page: final squads, spend per team
+-Summary stats: most expensive player, best value pick, unsold list

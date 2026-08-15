@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AuctionPage from "./pages/AuctionPage";
 import { useEffect } from "react";
 import socket from "./socket/socket";
+import SummaryPage from "./pages/SummaryPage";
 
 const ProtectedRoute = ({children}) =>{
   const {token}=useSelector((state)=>state.auth);
@@ -47,6 +48,11 @@ function App() {
         <Route path="/auction" element={
           <ProtectedRoute>
             <AuctionPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/summary" element={
+          <ProtectedRoute>
+            <SummaryPage />
           </ProtectedRoute>
         } />
       </Routes>
