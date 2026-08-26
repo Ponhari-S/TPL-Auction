@@ -34,8 +34,10 @@ const AuctionRules = () => {
                 squadSize: rules.squadSize,
                 maxRetentions:rules.maxRetentions,
                 minRetentionPrice:rules.minRetentionPrice,
-                maxRetentionPrice:rules.maxRetentionPrice
-
+                maxRetentionPrice:rules.maxRetentionPrice,
+                marqueeBasePrice:rules.marqueeBasePrice,
+                eliteBasePrice:rules.eliteBasePrice,
+                rookieBasePrice:rules.rookieBasePrice
             })
             setRules(res.data);
             setMessage("Auction rules updated");
@@ -136,6 +138,45 @@ const AuctionRules = () => {
                 type="number"
                 name="maxRetentionPrice"
                 value={rules.maxRetentionPrice}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">
+              Marquee Base Price
+              </label>
+              <input
+                type="number"
+                name="marqueeBasePrice"
+                value={rules.marqueeBasePrice}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">
+              Elite Base Price
+              </label>
+              <input
+                type="number"
+                name="eliteBasePrice"
+                value={rules.eliteBasePrice}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">
+              Rookie Base Price
+              </label>
+              <input
+                type="number"
+                name="rookieBasePrice"
+                value={rules.rookieBasePrice}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
               />

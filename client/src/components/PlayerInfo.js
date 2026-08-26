@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { useSelector } from 'react-redux';
 
 const PlayerInfo = () => {
     const [player, setPlayer] = useState(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [registered, setRegistered] = useState(false);
+
+    const { user } = useSelector((state) => state.auth);
 
     const handleRegister = async () => {
         setRegistered(true);
@@ -91,7 +94,7 @@ const PlayerInfo = () => {
                 </span>
             </div>
 
-            {player.status !== 'sold' && player.status !== 'registered' && (
+            {user?.role !== 'captain' && player.status !== 'sold' && player.status !== 'registered' && (
                 <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between gap-4 flex-wrap">
                     <p className="text-slate-500 text-sm">
                         Status: <span className="text-white capitalize">{player.status}</span>

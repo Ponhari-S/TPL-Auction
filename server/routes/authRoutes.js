@@ -3,6 +3,7 @@ const bcrypt=require('bcryptjs');
 const User=require('../models/User');
 const jwt=require('jsonwebtoken');
 const protect = require('../middleware/authMiddleware');
+const isAdmin = require('../middleware/adminMiddleware');
 
 const router=express.Router();
 
@@ -84,6 +85,20 @@ router.post('/login',async (req,res)=>{
     catch(err){
         res.status(500).json({message: err.message});
     }
-})
+});
+
+router.get('/unlinked-users', protect, isAdmin, async (req, res) => {
+    try {
+      const Player = require('../models/Player');
+      const linkedUserIds = await Player.find({ user: { $ne: null } }).distinct('user');
+      const users = await User.find({
+        role: { $in: ['player', 'captain'] },
+        _id: { $nin: linkedUserIds }
+      }).select('name email role');
+      res.json(users);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
 
 module.exports= router

@@ -6,6 +6,7 @@ import BuildQueue from '../components/BuildQueue';
 import AuctionControls from '../components/AuctionControls';
 import SocketTest from '../components/SocketTest';
 import PendingTrades from '../components/PendingTrades';
+import AddPlayer from '../components/AddPlayer';
 
 const AdminDashboard = () => {
     const user = useSelector((state)=>state.auth.user);
@@ -24,6 +25,7 @@ const AdminDashboard = () => {
         <AuctionControls />
         <PendingTrades />
         <SocketTest />
+        <AddPlayer />
       </div>
     </div>
   )

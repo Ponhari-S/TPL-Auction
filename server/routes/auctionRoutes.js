@@ -124,7 +124,7 @@ router.get('/status',async(req,res)=>{
 
 router.put('/rules',protect,isAdmin,async (req,res)=>{
     try{
-        const{minIncrement,squadSize,maxRetentions,minRetentionPrice,maxRetentionPrice}=req.body;
+        const{minIncrement,squadSize,maxRetentions,minRetentionPrice,maxRetentionPrice,marqueeBasePrice, eliteBasePrice, rookieBasePrice, captainFee}=req.body;
         const state=await getOrCreateAuctionState();
 
         if(minIncrement!==undefined){
@@ -142,6 +142,10 @@ router.put('/rules',protect,isAdmin,async (req,res)=>{
         if(maxRetentionPrice!==undefined){
             state.maxRetentionPrice=maxRetentionPrice;
         }
+        if (captainFee !== undefined) state.captainFee = captainFee;
+        if (marqueeBasePrice !== undefined) state.marqueeBasePrice = marqueeBasePrice;
+        if (eliteBasePrice !== undefined) state.eliteBasePrice = eliteBasePrice;
+        if (rookieBasePrice !== undefined) state.rookieBasePrice = rookieBasePrice;
 
         await state.save();
         res.json(state);

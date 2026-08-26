@@ -12,7 +12,7 @@ const playerSchema = new mongoose.Schema({
     },
     basePrice: {
         type: Number,
-        required: true
+        default: null
     },
     stats: {
       matches: { type: Number, default: 0 },

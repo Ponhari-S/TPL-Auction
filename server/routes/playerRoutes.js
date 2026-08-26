@@ -11,11 +11,20 @@ const router=express.Router();
 
 router.post('/',protect,isAdmin,async(req,res)=>{
     try{
-        const player=await Player.create(req.body);
+        const { userId, ...playerData } = req.body;
+        const player = await Player.create({ ...playerData, user: userId || null });
         try{
             const rating = await getRating(player);
+            const state = await AuctionState.findById('singleton');
+            const pool = ratingToPool(rating);
+            const poolPrices = {
+                marquee: state?.marqueeBasePrice || 4800000,
+                elite: state?.eliteBasePrice || 2400000,
+                rookie: state?.rookieBasePrice || 1200000
+            };
             player.overallRating = rating;
-            player.pool = ratingToPool(rating);
+            player.pool = pool;
+            player.basePrice = poolPrices[pool];
             await player.save();
         }
         catch(ratingErr){
@@ -121,6 +130,9 @@ router.delete('/:id',protect,isAdmin,async(req,res)=>{
 
 router.put('/me/register',protect,async (req,res)=>{
     try{
+        if (req.user.role === 'captain') {
+            return res.status(403).json({ message: 'Captains cannot register for the auction' });
+        }
         const player= await Player.findOne({user: req.user.id})
         if(!player){
             return res.status(404).json({message:"No player profile found for this user"});
