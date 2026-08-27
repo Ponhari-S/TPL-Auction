@@ -3,14 +3,13 @@ import api from "../api/axios";
 
 const RetainPlayers = () => {
     const [players, setPlayers] = useState("");
-    const [prices, setPrices] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 
     const fetchPlayers = async () => {
         try {
-            const player = await api.get("/players");
-            setPlayers(player.data.filter((p) => !p.retainedBy && p.status !== 'sold'));
+            const res = await api.get("/players");
+            setPlayers(res.data.filter((p) => p.previouslyReleasedBy && !p.retainedBy));
         }
         catch (err) {
             setError('Failed to load players');
@@ -24,10 +23,9 @@ const RetainPlayers = () => {
     const handleRetain = async (playerId) => {
         setMessage("");
         setError("");
-        const price = Number(prices[playerId]);
         try {
-            await api.put(`/players/${playerId}/retain`, { price });
-            setMessage("Player retained successfully");
+            const res=await api.put(`/players/${playerId}/retain`);
+            setMessage(`${res.data.name} retained for ₹${res.data.retentionPrice.toLocaleString()}`);
             fetchPlayers();
         }
         catch (err) {
@@ -78,13 +76,6 @@ const RetainPlayers = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <input
-                type="number"
-                placeholder="Price"
-                value={prices[player._id] || ''}
-                onChange={(e) => setPrices({ ...prices, [player._id]: e.target.value })}
-                className="w-28 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
-              />
               <button
                 onClick={() => handleRetain(player._id)}
                 className="bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap"

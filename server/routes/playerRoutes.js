@@ -150,36 +150,35 @@ router.put('/me/register',protect,async (req,res)=>{
 
 router.put('/:id/retain',protect,async (req,res)=>{
     try{
-        if(req.user?.role!=='captain'){
+        if(req.user.role!=='captain'){
             return res.status(403).json({ message: 'Only captains can retain players' });
         }
-        const { price } = req.body;
-        if(price===undefined){
-            return res.status(400).json({ message: 'Retention price is required' });
-        }
+    
         const team = await Team.findOne({captain: req.user.id});
         if(!team){
             return res.status(400).json({ message: 'You do not own a team yet' });
         }
-        const state=await AuctionState.findOne();
-        if (price < state.minRetentionPrice || price > state.maxRetentionPrice) {
-            return res.status(400).json({
-              message: `Price must be between ${state.minRetentionPrice} and ${state.maxRetentionPrice}`
-            });
+
+        const alreadyRetained = await Player.countDocuments({ retainedBy: team._id });
+        if (alreadyRetained >= 1) {
+            return res.status(400).json({ message: 'You have already used your one retention' });
         }
-        const alreadyRetainedCount = await Player.countDocuments({ retainedBy: team._id });
-        if (alreadyRetainedCount >= state.maxRetentions) {
-            return res.status(400).json({ message: 'You have reached your retention limit' });
-        }
-        if (price > team.remainingPurse) {
-            return res.status(400).json({ message: 'Insufficient purse for this retention' });
-        }
+
         const player=await Player.findById(req.params.id);
         if(!player){
             return res.status(404).json({ message: 'Player not found' });
         }
+        if (!player.previouslyReleasedBy || player.previouslyReleasedBy.toString() !== team._id.toString()) {
+            return res.status(400).json({ message: 'You can only retain a player you previously released' });
+        }
         if(player.retainedBy){
             return res.status(400).json({ message: 'This player is already retained by a team' });
+        }
+        const state = await AuctionState.findById('singleton');
+        const price = state?.retentionPrice || 33200000;
+        
+        if (price > team.remainingPurse) {
+            return res.status(400).json({ message: 'Insufficient purse for this retention' });
         }
         player.retainedBy=team._id;
         player.retentionPrice=price;

@@ -45,18 +45,7 @@ const auctionStateSchema=new mongoose.Schema({
         type:Number,
         default: 6
     },
-    maxRetentions:{
-        type:Number,
-        default:2
-    },
-    minRetentionPrice:{
-        type:Number,
-        default:1000000
-    },
-    maxRetentionPrice:{
-        type:Number,
-        default:5000000
-    }
+    retentionPrice: { type: Number, default: 33200000 }
 })
 
 module.exports=mongoose.model('AuctionState',auctionStateSchema);
