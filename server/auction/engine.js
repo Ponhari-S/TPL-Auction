@@ -152,7 +152,7 @@ const placeBid = async (userId,amount)=>{
     if (team.players.length >= state.squadSize) {
         return { success: false, message: 'Your squad is already full' };
     }
-    const minValidBid=state.currentBid+state.minIncrement;
+    const minValidBid=state.currentBidder ? state.currentBid + state.minIncrement : state.currentBid;
     if (amount < minValidBid) {
         return { success: false, message: `Bid must be at least ${minValidBid}` };
     }

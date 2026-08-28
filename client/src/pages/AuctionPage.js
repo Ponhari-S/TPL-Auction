@@ -63,7 +63,7 @@ const AuctionPage = () => {
       fetchInfo();
     }, [user]);
 
-    const nextValidBid = currentBid + minIncrement;
+    const nextValidBid = currentBidder ? currentBid + minIncrement : currentBid;
     const canBid = user?.role === 'captain' && myteam && myteam.players.length < squadSize && myteam.remainingPurse >= nextValidBid;
 
     const handleBid = () => {
