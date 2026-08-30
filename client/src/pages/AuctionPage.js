@@ -17,31 +17,14 @@ const AuctionPage = () => {
     const [squadSize, setSquadSize] = useState(6);
     const [timerEndsAt, setTimerEndsAt] = useState(null);
     const [myTeamId, setMyTeamId] = useState(null);
-    const [rtmEligible,setRtmEligible] = useState(false);
-
-    useEffect(()=>{
-      const checkEligible = async () => {
-        if(!player || user?.role!=='captain'){
-          setRtmEligible(false);
-          return;
-        }
-        try{
-          const res = await api.get(`/players/${player._id}/rtm-eligible`);
-          setRtmEligible(res.data.eligible);
-        }
-        catch(err){
-          setRtmEligible(false);
-        }
-      }
-      checkEligible();
-    },[player,user]);
+    const [rtmWindow, setRtmWindow] = useState(null);
 
     useEffect(() => {
       const fetchInfo = async () => {
         try {
           const rulesRes = await api.get('auction/rules');
           setMinIncrement(rulesRes.data.minIncrement);
-          setSquadSize(6);
+          setSquadSize(rulesRes.data.squadSize);
 
           const teamRes = await api.get('/teams');
           setTeams(teamRes.data);
@@ -113,6 +96,7 @@ const AuctionPage = () => {
               ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player] }
               : prev
           );
+          setRtmWindow(null);
         });
 
         socket.on('auction:ended', (data) => {
@@ -126,6 +110,11 @@ const AuctionPage = () => {
           setCurrentBid(data.currentBid);
           setCurrentBidder(data.currentBidder);
           setTimerEndsAt(data.timerEndsAt);
+          setRtmWindow(null);
+        });
+
+        socket.on('auction:rtmWindow', (data) => {
+          setRtmWindow(data);
         });
 
         socket.emit('auction:requestSync');
@@ -138,6 +127,7 @@ const AuctionPage = () => {
             socket.off('auction:playerSold');
             socket.off('auction:ended');
             socket.off('auction:rtmUsed');
+            socket.off('auction:rtmWindow');
         };
     }, []);
 
@@ -195,20 +185,22 @@ const AuctionPage = () => {
                 )}
                 <button
                   onClick={handleBid}
-                  disabled={!canBid}
+                  disabled={!canBid || rtmWindow}
                   className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
                 >
                 Bid ₹{nextValidBid.toLocaleString()}
                 </button>
-                {rtmEligible && currentBidder && currentBidder._id !== myTeamId && (
+                {rtmWindow && myTeamId === rtmWindow.eligibleTeamId && (
                   <div className="mt-6 pt-6 border-t border-white/10">
-                    <p className="text-slate-500 text-xs mb-2 text-center">
-                      You previously released this player — you can match the winning bid.
+                    <p className="text-purple-300 text-sm mb-2 text-center">
+                      You previously released this player — match the bid within 5 seconds!
                     </p>
-                    <button onClick={() => socket.emit('rtm:use', { token })}
-                      className="w-full bg-white/5 border border-white/10 text-slate-400 font-display font-semibold text-sm py-2.5 rounded-lg tracking-wide flex items-center justify-center gap-2"
+                    <CountdownTimer timerEndsAt={rtmWindow.windowEndsAt} />
+                    <button
+                      onClick={() => socket.emit('rtm:use', { token })}
+                      className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2.5 rounded-lg"
                     >
-                      Match Bid (₹{currentBid.toLocaleString()})
+                      Match Bid (₹{rtmWindow.currentBid.toLocaleString()})
                     </button>
                   </div>
                 )}

@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 
 let ioInstance = null;
 let currentTimer = null;
+let rtmTimer = null;
+let awaitingRtmTeamId = null;
 
 const initEngine = (io)=>{
     ioInstance=io;
@@ -24,6 +26,38 @@ const pauseTimer = () => {
     clearTimeout(currentTimer);
     currentTimer = null;
   }
+};
+
+const finalizeSale = async (state,player) => {
+    const session = await mongoose.startSession();
+    try{
+        await session.withTransaction(async ()=>{
+            const team = await Team.findById(state.currentBidder).session(session);
+            player.status = 'sold';
+            player.soldTo = team._id;
+            player.soldPrice = state.currentBid;
+            await player.save({ session });
+            team.remainingPurse -= state.currentBid;
+            team.players.push(player._id);
+            await team.save({ session });
+        });
+
+        const team = await Team.findById(state.currentBidder);
+        ioInstance.emit('auction:playerSold', {
+        player,
+        team: { _id: team._id, name: team.name },
+        soldPrice: state.currentBid
+        });
+
+        console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
+    }
+    catch(transactionErr){
+        console.error('Sale transaction failed:', transactionErr.message);
+    }
+    finally{
+        await session.endSession();
+    }
+    await startNextPlayer();
 };
 
 const resumeTimer = async () => {
@@ -74,36 +108,36 @@ const handleTimeout=async ()=>{
     const state=await AuctionState.findById('singleton');
     const player=await Player.findById(state.currentPlayer);
     if(state.currentBidder){
-        const session=await mongoose.startSession();
-        try{
-            await session.withTransaction(async() =>{
-                const team=await Team.findById(state.currentBidder).session(session);
-                player.status='sold';
-                player.soldTo=team._id;
-                player.soldPrice=state.currentBid;
-                await player.save({session});
+        const eligibleTeamId = player.previouslyReleasedBy;
+        let alreadyUsed = true;
+        let isAlreadyWinner = false;
 
-                team.remainingPurse -= state.currentBid;
-                team.players.push(player._id);
-                await team.save({session});
-            });
-            const team = await Team.findById(state.currentBidder);
-            ioInstance.emit('auction:playerSold',{
-                player,
-                team: {
-                    _id: team._id,
-                    name: team.name
-                },
-                soldPrice: state.currentBid
-            });
-            console.log(`SOLD: ${player.name} to ${team.name} for ${state.currentBid}`);
+        if (eligibleTeamId) {
+            const priorUse = await Player.countDocuments({ rtmUsedBy: eligibleTeamId });
+            alreadyUsed = priorUse > 0;
+            isAlreadyWinner = eligibleTeamId.toString() === state.currentBidder.toString();
         }
-        catch(transactionErr){
-            console.error('Sale transaction failed:', transactionErr.message);
+        if (eligibleTeamId && !alreadyUsed && !isAlreadyWinner) {
+        awaitingRtmTeamId = eligibleTeamId.toString();
+        const eligibleTeam = await Team.findById(eligibleTeamId);
+        ioInstance.emit('auction:rtmWindow', {
+            player,
+            currentBid: state.currentBid,
+            eligibleTeamId: eligibleTeamId.toString(),
+            eligibleTeamName: eligibleTeam?.name,
+            windowEndsAt: new Date(Date.now() + 5000)
+        });
+
+        console.log(`RTM WINDOW: ${eligibleTeam?.name} has 5s to match on ${player.name}`);
+
+        rtmTimer = setTimeout(async () => {
+            awaitingRtmTeamId = null;
+            await finalizeSale(state, player);
+        }, 5000);
+
+        return;
         }
-        finally{
-            await session.endSession();
-        }
+        await finalizeSale(state,player);
     }
     else{
         if(player.status==='unsold'){
@@ -195,51 +229,53 @@ const placeBid = async (userId,amount)=>{
 };
 
 const useRtm = async (userId) => {
+    if (!awaitingRtmTeamId) {
+      return { success: false, message: 'RTM is not currently available' };
+    }
+  
+    const team = await Team.findOne({ captain: userId });
+    if (!team || team._id.toString() !== awaitingRtmTeamId) {
+      return { success: false, message: 'You are not eligible to RTM right now' };
+    }
+
+    const anyPriorRtmUse = await Player.countDocuments({ rtmUsedBy: team._id });
+    if (anyPriorRtmUse > 0) {
+        return { success: false, message: 'Your team has already used its one RTM for this auction' };
+    }
+  
     const state = await AuctionState.findById('singleton');
-    if(state.status!=='live' || !state.currentPlayer){
-        return { success: false, message: 'Auction is not live' };
-    }
-    const team = await Team.findOne({captain:userId});
-    if(!team){
-        return { success: false, message: 'You do not own a team' };
-    }
     const player = await Player.findById(state.currentPlayer);
-    if(!player.previouslyReleasedBy || player.previouslyReleasedBy.toString()!==team._id.toString()){
-        return { success: false, message: 'You are not eligible to RTM this player' };
+  
+    if (team.players.length >= state.squadSize) {
+      return { success: false, message: 'Your squad is already full' };
     }
-    const alreadyUsed = player.rtmUsedBy.some((p)=>p.toString()===team._id.toString());
-    if(alreadyUsed){
-        return { success: false, message: 'You have already used RTM on this player' };
+    if (state.currentBid > team.remainingPurse) {
+      return { success: false, message: 'Insufficient purse to match this bid' };
     }
-    if(team.players.length>=state.squadSize){
-        return { success: false, message: 'Your squad is already full' };
-    }
-
-    if (state.currentBidder.toString() === team._id.toString()) {
-        return { success: false, message: 'You are already the highest bidder' };
-    }
-
-    if (!state.currentBidder) {
-        return { success: false, message: 'No bid to match yet' };
-    }
-    if(state.currentBid>team.remainingPurse){
-        return { success: false, message: 'Insufficient purse to match this bid' };
-    }
-    const updatedState = await AuctionState.findOneAndUpdate({_id:'singleton',currentPlayer:state.currentPlayer},{currentBidder:team._id},{new: true});
-    if(!updatedState){
-        return { success: false, message: 'Player changed before RTM could be applied' };
-    }
+  
+    clearTimeout(rtmTimer);
+    rtmTimer = null;
+    awaitingRtmTeamId = null;
+  
+    const updatedState = await AuctionState.findOneAndUpdate(
+      { _id: 'singleton', currentPlayer: state.currentPlayer },
+      { currentBidder: team._id },
+      { new: true }
+    );
+  
     player.rtmUsedBy.push(team._id);
     await player.save();
-
-    scheduleTimer(0);
-    ioInstance.emit('auction:rtmUsed',{
-        currentBid:updatedState.currentBid,
-        currentBidder:{_id:team._id,name:team.name},
-        timerEndsAt: new Date(Date.now() + 15000)
+  
+    ioInstance.emit('auction:rtmUsed', {
+      currentBid: updatedState.currentBid,
+      currentBidder: { _id: team._id, name: team.name }
     });
-    console.log(`RTM: ${team.name} matched bid for player ${state.currentPlayer}`);
-    return {success:true};
-}
+  
+    console.log(`RTM: ${team.name} matched bid for player ${player.name}`);
+  
+    await finalizeSale(updatedState, player);
+  
+    return { success: true };
+};
 
-module.exports={initEngine,startNextPlayer,placeBid,pauseTimer,resumeTimer,useRtm};
+module.exports = { initEngine, startNextPlayer, placeBid, pauseTimer, resumeTimer, useRtm };
