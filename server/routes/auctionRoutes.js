@@ -89,6 +89,7 @@ router.put('/pause',async (req,res)=>{
         state.status='paused';
         await state.save();
         pauseTimer();
+        req.io.emit('auction:paused');
         res.json(state);
     }
     catch(err){
@@ -105,6 +106,7 @@ router.put('/resume',async (req,res)=>{
         state.status='live';
         await state.save();
         resumeTimer();
+        req.io.emit('auction:resumed', { timerEndsAt: state.timerEndsAt });
         res.json(state);
     }
     catch(err){

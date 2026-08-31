@@ -18,6 +18,7 @@ const AuctionPage = () => {
     const [timerEndsAt, setTimerEndsAt] = useState(null);
     const [myTeamId, setMyTeamId] = useState(null);
     const [rtmWindow, setRtmWindow] = useState(null);
+    const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
       const fetchInfo = async () => {
@@ -77,6 +78,15 @@ const AuctionPage = () => {
           setTimerEndsAt(data.timerEndsAt);
         });
 
+        socket.on('auction:paused', () => {
+          setIsPaused(true);
+        });
+        
+        socket.on('auction:resumed', (data) => {
+          setIsPaused(false);
+          setTimerEndsAt(data.timerEndsAt);
+        });
+
         socket.on('bid:rejected', (data) => {
           setBidError(data.message);
         });
@@ -128,6 +138,8 @@ const AuctionPage = () => {
             socket.off('auction:ended');
             socket.off('auction:rtmUsed');
             socket.off('auction:rtmWindow');
+            socket.off('auction:paused');
+            socket.off('auction:resumed');
         };
     }, []);
 
@@ -163,7 +175,10 @@ const AuctionPage = () => {
                 ★ {player.overallRating}/10
               </span>
             )}
-            <CountdownTimer timerEndsAt={timerEndsAt} />
+            <CountdownTimer timerEndsAt={isPaused ? null : timerEndsAt} />
+            {isPaused && (
+              <p className="text-yellow-400 text-sm font-semibold mb-2">⏸ Auction Paused by Admin</p>
+            )}
             <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
               <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
               <p className="font-display text-4xl text-[#f4b942] tabular-nums">₹{currentBid.toLocaleString()}</p>
@@ -185,7 +200,7 @@ const AuctionPage = () => {
                 )}
                 <button
                   onClick={handleBid}
-                  disabled={!canBid || rtmWindow}
+                  disabled={!canBid || rtmWindow || isPaused}
                   className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
                 >
                 Bid ₹{nextValidBid.toLocaleString()}

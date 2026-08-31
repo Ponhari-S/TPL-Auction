@@ -27,8 +27,12 @@ app.use(cors());
 app.use('/api/auth',authRoutes);
 app.use('/api/players',playerRoutes);
 app.use('/api/teams',teamRoutes);
-app.use('/api/auction',auctionRoutes);
 app.use('/api/trades',tradeRoutes);
+app.use((req,res,next)=>{
+    req.io=io;
+    next();
+});
+app.use('/api/auction',auctionRoutes);
 
 app.get('/api/test-protected',protect,(req,res)=>{
     res.status(200).json({message:"You are Authorized!!",user:req.user});
