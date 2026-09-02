@@ -213,6 +213,9 @@ router.put("/:id/release",protect,async(req,res)=>{
         if(team.captain.toString()!==req.user.id){
             return res.status(403).json({ message: 'Only the captain can release a player' });
         }
+        if (player.user && player.user.toString() === req.user.id) {
+            return res.status(400).json({ message: 'You cannot release yourself. Transfer captaincy first.' });
+        }
         const refund = player.soldPrice || player.retentionPrice || 0;
         const session=await mongoose.startSession();
         try{

@@ -155,7 +155,7 @@ function ViewTeam() {
                 )}
                 <p className="text-slate-400 text-xs mb-2">Select a player to make captain:</p>
                 <div className="flex flex-col gap-1">
-                  {team.players.map((p) => (
+                  {team.players.filter((p) => p.user !== user._id).map((p) => (
                     <button
                       key={p._id}
                       onClick={() => handleGiveCaptaincy(p._id)}
@@ -183,7 +183,7 @@ function ViewTeam() {
                       <p className="text-[#f4b942] text-xs font-display tabular-nums mt-1">₹{p.retentionPrice.toLocaleString()} (retained)</p>
                     )}
 
-                    {isMyTeamCaptain && (
+                    {isMyTeamCaptain && p.user !== user._id && (
                       <div className="mt-2">
                         {confirmingRelease === p._id ? (
                           <div className="flex gap-2">

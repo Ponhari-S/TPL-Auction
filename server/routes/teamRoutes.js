@@ -186,11 +186,16 @@ router.put('/:id/give-captaincy',protect,async (req,res)=>{
         if(!player || !player.user){
             return res.status(400).json({ message: 'This player has no linked user account' });
         }
-        team.captain=player.user;
-        await team.save();
 
-        await User.findByIdAndUpdate(req.user.id,{role:"player"});
-        await User.findByIdAndUpdate(player.user,{role:"captain"});
+        if (player.user.toString() === req.user.id) {
+            return res.status(400).json({ message: 'You are already the captain' });
+        }
+        
+        team.captain = player.user;
+        await team.save();
+        await User.findByIdAndUpdate(player.user, { role: 'captain', team: team._id });
+        await User.findByIdAndUpdate(req.user.id, { team: null });
+
         res.json(team);
     }
     catch(err){

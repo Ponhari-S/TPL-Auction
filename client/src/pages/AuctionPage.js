@@ -19,6 +19,7 @@ const AuctionPage = () => {
     const [myTeamId, setMyTeamId] = useState(null);
     const [rtmWindow, setRtmWindow] = useState(null);
     const [isPaused, setIsPaused] = useState(false);
+    const [lastOutcome, setLastOutcome] = useState(null);
 
     useEffect(() => {
       const fetchInfo = async () => {
@@ -61,6 +62,7 @@ const AuctionPage = () => {
             setCurrentBid(data.currentBid);
             setCurrentBidder(null);
             setTimerEndsAt(data.timerEndsAt);
+            setLastOutcome(null);
         });
 
         socket.on('auction:sync', (data) => {
@@ -81,7 +83,7 @@ const AuctionPage = () => {
         socket.on('auction:paused', () => {
           setIsPaused(true);
         });
-        
+
         socket.on('auction:resumed', (data) => {
           setIsPaused(false);
           setTimerEndsAt(data.timerEndsAt);
@@ -107,6 +109,12 @@ const AuctionPage = () => {
               : prev
           );
           setRtmWindow(null);
+          setLastOutcome({
+            type: 'sold',
+            playerName: data.player.name,
+            teamName: data.team.name,
+            price: data.soldPrice
+          });
         });
 
         socket.on('auction:ended', (data) => {
@@ -116,7 +124,7 @@ const AuctionPage = () => {
           setTimerEndsAt(null);
         })
 
-        socket.on('auction:rtmUsed',(data)=>{
+        socket.on('auction:rtmUsed', (data) => {
           setCurrentBid(data.currentBid);
           setCurrentBidder(data.currentBidder);
           setTimerEndsAt(data.timerEndsAt);
@@ -125,6 +133,14 @@ const AuctionPage = () => {
 
         socket.on('auction:rtmWindow', (data) => {
           setRtmWindow(data);
+        });
+
+        socket.on('auction:playerUnsold', (data) => {
+          setLastOutcome({ type: 'unsold', playerName: data.player.name });
+        });
+
+        socket.on('auction:playerUnsoldFinal', (data) => {
+          setLastOutcome({ type: 'unsold-final', playerName: data.player.name });
         });
 
         socket.emit('auction:requestSync');
@@ -140,6 +156,8 @@ const AuctionPage = () => {
             socket.off('auction:rtmWindow');
             socket.off('auction:paused');
             socket.off('auction:resumed');
+            socket.off('auction:playerUnsold');
+            socket.off('auction:playerUnsoldFinal');
         };
     }, []);
 
@@ -157,100 +175,134 @@ const AuctionPage = () => {
             <p className="text-slate-400 text-sm">No player currently up for auction.</p>
           </div>
         ) : (
-          <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-8 sm:p-10 text-center shadow-2xl shadow-black/40">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs tracking-widest uppercase font-display mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-              Live
-            </span>
+          <>
+            {lastOutcome && (
+              <div className={`mb-4 px-4 py-3 rounded-xl border text-sm font-display tracking-wide ${
+                lastOutcome.type === 'sold'
+                  ? 'bg-[#22c55e]/10 border-[#22c55e]/30 text-[#22c55e]'
+                  : 'bg-white/5 border-white/10 text-slate-400'
+              }`}>
+                {lastOutcome.type === 'sold' && (
+                  <>SOLD: {lastOutcome.playerName} → {lastOutcome.teamName} for ₹{lastOutcome.price.toLocaleString()}</>
+                )}
+                {lastOutcome.type === 'unsold' && (
+                  <>UNSOLD: {lastOutcome.playerName} — back in the queue</>
+                )}
+                {lastOutcome.type === 'unsold-final' && (
+                  <>UNSOLD: {lastOutcome.playerName} — removed from auction</>
+                )}
+              </div>
+            )}
 
-            <h1 className="font-display text-3xl sm:text-4xl text-white tracking-tight mb-2">{player.name}</h1>
-            <p className="text-slate-400 capitalize mb-1">{player.role}</p>
-            {player.pool && (
-              <span className="inline-block bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs px-3 py-1 rounded-full capitalize mt-2 tracking-wide">
-                {player.pool}
+            <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-8 sm:p-10 text-center shadow-2xl shadow-black/40">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs tracking-widest uppercase font-display mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
+                Live
               </span>
-            )}
-            {player.overallRating && (
-              <span className="inline-block bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs px-3 py-1 rounded-full capitalize mt-2 tracking-wide">
-                ★ {player.overallRating}/10
-              </span>
-            )}
-            <CountdownTimer timerEndsAt={isPaused ? null : timerEndsAt} />
-            {isPaused && (
-              <p className="text-yellow-400 text-sm font-semibold mb-2">⏸ Auction Paused by Admin</p>
-            )}
-            <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
-              <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
-              <p className="font-display text-4xl text-[#f4b942] tabular-nums">₹{currentBid.toLocaleString()}</p>
-              <p className="text-slate-400 text-sm mt-3">
-                {currentBidder ? (
-                  <>Leading: <span className="text-white font-semibold">{currentBidder.name}</span></>
-                ) : (
-                  'No bids yet'
-                )}
-              </p>
-            </div>
 
-            {user?.role === 'captain' && (
-              <div className="mt-6 pt-6 border-t border-white/10">
-                {bidError && (
-                  <div className="mb-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                    {bidError}
-                  </div>
-                )}
-                <button
-                  onClick={handleBid}
-                  disabled={!canBid || rtmWindow || isPaused}
-                  className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
-                >
-                Bid ₹{nextValidBid.toLocaleString()}
-                </button>
-                {rtmWindow && myTeamId === rtmWindow.eligibleTeamId && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <p className="text-purple-300 text-sm mb-2 text-center">
-                      You previously released this player — match the bid within 5 seconds!
-                    </p>
-                    <CountdownTimer timerEndsAt={rtmWindow.windowEndsAt} />
-                    <button
-                      onClick={() => socket.emit('rtm:use', { token })}
-                      className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2.5 rounded-lg"
-                    >
-                      Match Bid (₹{rtmWindow.currentBid.toLocaleString()})
-                    </button>
-                  </div>
-                )}
-                {myteam && myteam.players.length >= squadSize && (
-                  <p className="text-slate-500 text-xs mt-2 text-center">Your squad is full</p>
-                )}
-                {myteam && myteam.remainingPurse < nextValidBid && (
-                  <p className="text-slate-500 text-xs mt-2 text-center">Insufficient purse for next bid</p>
-                )}
-              </div>
-            )}
+              <h1 className="font-display text-3xl sm:text-4xl text-white tracking-tight mb-2">{player.name}</h1>
+              <p className="text-slate-400 capitalize mb-1">{player.role}</p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-8 text-left">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Matches</p>
-                <p className="font-display text-xl text-white tabular-nums">{player.stats.matches}</p>
+              {(player.pool || player.overallRating) && (
+                <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                  {player.overallRating && (
+                    <span className="bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs px-3 py-1 rounded-full tracking-wide">
+                      ★ {player.overallRating}/10
+                    </span>
+                  )}
+                  {player.pool && (
+                    <span className="bg-[#f4b942]/10 border border-[#f4b942]/30 text-[#f4b942] text-xs px-3 py-1 rounded-full capitalize tracking-wide">
+                      {player.pool}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {isPaused ? (
+                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#f4b942]/30 bg-[#f4b942]/10 text-[#f4b942] text-xs uppercase tracking-widest font-display">
+                  ⏸ Paused by Admin
+                </div>
+              ) : (
+                <CountdownTimer timerEndsAt={timerEndsAt} />
+              )}
+
+              <div className="mt-6 bg-[#f4b942]/5 border border-[#f4b942]/20 rounded-xl p-6">
+                <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Bid</p>
+                <p className="font-display text-4xl text-[#f4b942] tabular-nums">₹{currentBid.toLocaleString()}</p>
+                <p className="text-slate-400 text-sm mt-3">
+                  {currentBidder ? (
+                    <>Leading: <span className="text-white font-semibold">{currentBidder.name}</span></>
+                  ) : (
+                    'No bids yet'
+                  )}
+                </p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Runs</p>
-                <p className="font-display text-xl text-white tabular-nums">{player.stats.runs}</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Wickets</p>
-                <p className="font-display text-xl text-white tabular-nums">{player.stats.wickets}</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Average</p>
-                <p className="font-display text-xl text-[#f4b942] tabular-nums">{player.stats.average}</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Strike Rate</p>
-                <p className="font-display text-xl text-white tabular-nums">{player.stats.strikeRate}</p>
+
+              {user?.role === 'captain' && (
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  {bidError && (
+                    <div className="mb-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                      {bidError}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleBid}
+                    disabled={!canBid || rtmWindow || isPaused}
+                    className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
+                  >
+                  Bid ₹{nextValidBid.toLocaleString()}
+                  </button>
+
+                  {rtmWindow && myTeamId === rtmWindow.eligibleTeamId && (
+                    <div className="mt-6 pt-6 border-t border-red-500/20">
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                        <p className="text-red-400 text-sm font-semibold text-center mb-3">
+                          You previously released this player — match the bid within 5 seconds!
+                        </p>
+                        <CountdownTimer timerEndsAt={rtmWindow.windowEndsAt} />
+                        <button
+                          onClick={() => socket.emit('rtm:use', { token })}
+                          className="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-display font-semibold text-sm py-2.5 rounded-lg tracking-wide transition-colors"
+                        >
+                          Match Bid (₹{rtmWindow.currentBid.toLocaleString()})
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {myteam && myteam.players.length >= squadSize && (
+                    <p className="text-slate-500 text-xs mt-2 text-center">Your squad is full</p>
+                  )}
+                  {myteam && myteam.remainingPurse < nextValidBid && (
+                    <p className="text-slate-500 text-xs mt-2 text-center">Insufficient purse for next bid</p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-8 text-left">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Matches</p>
+                  <p className="font-display text-xl text-white tabular-nums">{player.stats.matches}</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Runs</p>
+                  <p className="font-display text-xl text-white tabular-nums">{player.stats.runs}</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Wickets</p>
+                  <p className="font-display text-xl text-white tabular-nums">{player.stats.wickets}</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Average</p>
+                  <p className="font-display text-xl text-[#f4b942] tabular-nums">{player.stats.average}</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Strike Rate</p>
+                  <p className="font-display text-xl text-white tabular-nums">{player.stats.strikeRate}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
