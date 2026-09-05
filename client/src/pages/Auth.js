@@ -47,14 +47,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0f1e] flex flex-col lg:flex-row">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden w-full bg-[#0a0f1e] flex flex-col lg:flex-row">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
         .font-display { font-family: 'Oswald', sans-serif; }
         .font-body { font-family: 'Inter', sans-serif; }
       `}</style>
 
-      <div className="relative lg:w-[46%] px-6 py-10 sm:px-10 lg:px-14 lg:py-16 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0d1526] via-[#0a0f1e] to-[#0a1f14] font-body">
+      <div className="relative lg:w-[46%] lg:h-screen px-6 py-10 sm:px-10 lg:px-14 lg:py-16 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0d1526] via-[#0a0f1e] to-[#0a1f14] font-body">
         <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-[#22c55e]/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-[#f4b942]/10 blur-3xl pointer-events-none" />
 
@@ -110,8 +110,8 @@ const Auth = () => {
         </svg>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16 lg:py-6 font-body">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16 lg:py-6 font-body lg:h-screen lg:overflow-y-auto">
+        <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
           <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 mb-8 lg:mb-5">
             <button
               type="button"
@@ -215,7 +215,6 @@ const Auth = () => {
                   >
                     <option value="player" className="bg-[#0f1729]">Player</option>
                     <option value="captain" className="bg-[#0f1729]">Captain</option>
-                    <option value="admin" className="bg-[#0f1729]">Admin</option>
                   </select>
                 </div>
               )}

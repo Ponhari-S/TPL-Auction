@@ -20,6 +20,7 @@ const AuctionPage = () => {
     const [rtmWindow, setRtmWindow] = useState(null);
     const [isPaused, setIsPaused] = useState(false);
     const [lastOutcome, setLastOutcome] = useState(null);
+    const [nextValidBid, setNextValidBid] = useState(0);
 
     useEffect(() => {
       const fetchInfo = async () => {
@@ -48,7 +49,11 @@ const AuctionPage = () => {
       fetchInfo();
     }, [user]);
 
-    const nextValidBid = currentBidder ? currentBid + minIncrement : currentBid;
+    useEffect(() => {
+      if (!player) return;
+      api.get('/auction/next-bid').then((res) => setNextValidBid(res.data.nextBid));
+    }, [player, currentBid,currentBidder]);
+    
     const canBid = user?.role === 'captain' && myteam && myteam.players.length < squadSize && myteam.remainingPurse >= nextValidBid;
 
     const handleBid = () => {

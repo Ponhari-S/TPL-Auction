@@ -48,61 +48,65 @@ const AuctionControls = () => {
 
   if (!status) {
     return (
-      <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 flex items-center gap-3">
-        <span className="w-2 h-2 rounded-full bg-[#f4b942] animate-pulse" />
-        <p className="text-slate-400 text-sm">Loading auction status...</p>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 flex items-center gap-3">
+          <span className="w-2 h-2 rounded-full bg-[#f4b942] animate-pulse" />
+          <p className="text-slate-400 text-sm">Loading auction status...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-md lg:max-w-lg bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
+          .font-display { font-family: 'Oswald', sans-serif; }
+        `}</style>
 
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <h2 className="font-display text-2xl text-white tracking-tight">Auction Controls</h2>
-        <span className={`px-3 py-1 rounded-full border text-xs uppercase tracking-wider capitalize whitespace-nowrap flex items-center gap-1.5 ${statusStyles[status] || "bg-white/5 text-slate-300 border-white/10"}`}>
-          {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />}
-          {status}
-        </span>
-      </div>
-
-      {error && (
-        <div className="mb-5 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-          {error}
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <h2 className="font-display text-2xl text-white tracking-tight">Auction Controls</h2>
+          <span className={`px-3 py-1 rounded-full border text-xs uppercase tracking-wider capitalize whitespace-nowrap flex items-center gap-1.5 ${statusStyles[status] || "bg-white/5 text-slate-300 border-white/10"}`}>
+            {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />}
+            {status}
+          </span>
         </div>
-      )}
 
-      <div className="flex gap-3">
-        {(status === 'not-started' || status==='ended') && (
-          <button
-            onClick={() => handleAction('start')}
-            className="bg-[#22c55e] hover:bg-[#1ea34e] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Start Auction
-          </button>
+        {error && (
+          <div className="mb-5 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            {error}
+          </div>
         )}
 
-        {status === 'live' && (
-          <button
-            onClick={() => handleAction('pause')}
-            className="bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Pause Auction
-          </button>
-        )}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {(status === 'not-started' || status==='ended') && (
+            <button
+              onClick={() => handleAction('start')}
+              className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#1ea34e] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Start Auction
+            </button>
+          )}
 
-        {status === 'paused' && (
-          <button
-            onClick={() => handleAction('resume')}
-            className="bg-[#22c55e] hover:bg-[#1ea34e] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Resume Auction
-          </button>
-        )}
+          {status === 'live' && (
+            <button
+              onClick={() => handleAction('pause')}
+              className="w-full sm:w-auto bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Pause Auction
+            </button>
+          )}
+
+          {status === 'paused' && (
+            <button
+              onClick={() => handleAction('resume')}
+              className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#1ea34e] text-[#0a0f1e] font-display font-semibold text-sm tracking-wide px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Resume Auction
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

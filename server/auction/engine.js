@@ -7,6 +7,7 @@ let ioInstance = null;
 let currentTimer = null;
 let rtmTimer = null;
 let awaitingRtmTeamId = null;
+let isAdvancing = false;
 
 const initEngine = (io)=>{
     ioInstance=io;
@@ -16,17 +17,30 @@ const scheduleTimer = (durationMx)=>{
     if(currentTimer){
         clearTimeout(currentTimer);
     }
-    currentTimer=setTimeout(handleTimeout,durationMx);
+    currentTimer = setTimeout(handleTimeout, durationMx);
 }
 
 let pausedTimeRemaining = null;
 
-const pauseTimer = () => {
-  if (currentTimer) {
-    clearTimeout(currentTimer);
-    currentTimer = null;
-  }
-};
+const getIncrementForBid = (currentBid, rules) => {
+    const tier = rules.find((r) => currentBid < r.upTo);
+    return tier ? tier.increment : rules[rules.length - 1].increment;
+  };
+
+  let pausedRtmTeamId = null;
+
+  const pauseTimer = () => {
+    if (currentTimer) {
+      clearTimeout(currentTimer);
+      currentTimer = null;
+    }
+    if (rtmTimer) {
+      clearTimeout(rtmTimer);
+      rtmTimer = null;
+      pausedRtmTeamId = awaitingRtmTeamId;
+      awaitingRtmTeamId = null;
+    }
+  };
 
 const finalizeSale = async (state,player) => {
     const session = await mongoose.startSession();
@@ -61,48 +75,96 @@ const finalizeSale = async (state,player) => {
 };
 
 const resumeTimer = async () => {
-  const state = await AuctionState.findById('singleton');
-  if (!state.currentPlayer || !state.timerEndsAt) return;
+    const state = await AuctionState.findById('singleton');
+    if (!state.currentPlayer) return;
+  
+    if (currentTimer) {
+      clearTimeout(currentTimer);
+      currentTimer = null;
+    }
+  
+    if (pausedRtmTeamId) {
+      awaitingRtmTeamId = pausedRtmTeamId;
+      pausedRtmTeamId = null;
+  
+      const newWindowEndsAt = new Date(Date.now() + 5000);
+      const player = await Player.findById(state.currentPlayer);
+      const eligibleTeam = await Team.findById(awaitingRtmTeamId);
+  
+      ioInstance.emit('auction:rtmWindow', {
+        player,
+        currentBid: state.currentBid,
+        eligibleTeamId: awaitingRtmTeamId,
+        eligibleTeamName: eligibleTeam?.name,
+        windowEndsAt: newWindowEndsAt
+      });
+  
+      rtmTimer = setTimeout(async () => {
+        awaitingRtmTeamId = null;
+        await finalizeSale(state, player);
+      }, 5000);
+  
+      return;
+    }
+  
+    if (!state.timerEndsAt) return;
+  
+    const remaining = new Date(state.timerEndsAt).getTime() - Date.now();
+    const durationMs = remaining > 3000 ? remaining : 15000;
+  
+    const newTimerEndsAt = new Date(Date.now() + durationMs);
+    await AuctionState.findByIdAndUpdate('singleton', { timerEndsAt: newTimerEndsAt });
+  
+    currentTimer = setTimeout(handleTimeout, durationMs);
+  
+    ioInstance.emit('auction:resumed', { timerEndsAt: newTimerEndsAt });
+  };
 
-  const remaining = new Date(state.timerEndsAt).getTime() - Date.now();
-  const durationMs = remaining > 0 ? remaining : 1000;
-
-  currentTimer = setTimeout(handleTimeout, durationMs);
-};
-
-const startNextPlayer = async() =>{
-    const state=await AuctionState.findById('singleton');
-    if(!state.playerQueue || state.playerQueue.length===0){
-        state.status='ended';
-        state.currentPlayer=null;
+  const startNextPlayer = async () => {
+    if (isAdvancing) {
+      console.log('startNextPlayer already in progress, skipping duplicate call');
+      return;
+    }
+    isAdvancing = true;
+  
+    try {
+      const state = await AuctionState.findById('singleton');
+  
+      if (!state.playerQueue || state.playerQueue.length === 0) {
+        state.status = 'ended';
+        state.currentPlayer = null;
         await state.save();
         ioInstance.emit('auction:ended');
         return;
-    }
-
-    const nextPlayerId=state.playerQueue[0];
-    state.playerQueue=state.playerQueue.slice(1);
-
-    const player=await Player.findById(nextPlayerId);
-
-    state.currentPlayer=nextPlayerId;
-    state.currentBid=player.basePrice;
-    state.currentBidder=null;
-    state.timerEndsAt=new Date(Date.now()+30000);
-
-    await state.save();
-
-    ioInstance.emit('auction:playerUp',{
+      }
+  
+      const nextPlayerId = state.playerQueue[0];
+      state.playerQueue = state.playerQueue.slice(1);
+  
+      const player = await Player.findById(nextPlayerId);
+  
+      state.currentPlayer = nextPlayerId;
+      state.currentBid = player.basePrice;
+      state.currentBidder = null;
+      state.timerEndsAt = new Date(Date.now() + 30000);
+  
+      await state.save();
+  
+      ioInstance.emit('auction:playerUp', {
         player,
-        currentBid:state.currentBid,
-        timerEndsAt:state.timerEndsAt
-    });
-
-    console.log(`Player up: ${player.name}, timer ends at ${state.timerEndsAt}`);
-
-    scheduleTimer(30000);
-
-};
+        currentBid: state.currentBid,
+        timerEndsAt: state.timerEndsAt
+      });
+  
+      console.log(`Player up: ${player.name}, timer ends at ${state.timerEndsAt}`);
+  
+      if (state.status === 'live') {
+        scheduleTimer(30000);
+      }
+    } finally {
+      isAdvancing = false;
+    }
+  };
 
 const handleTimeout=async ()=>{
     const state=await AuctionState.findById('singleton');
@@ -140,7 +202,7 @@ const handleTimeout=async ()=>{
         await finalizeSale(state,player);
     }
     else{
-        if(player.status==='unsold'){
+        if(player?.status==='unsold'){
             player.status='unsold-final';
             await player.save();
 
@@ -186,7 +248,8 @@ const placeBid = async (userId,amount)=>{
     if (team.players.length >= state.squadSize) {
         return { success: false, message: 'Your squad is already full' };
     }
-    const minValidBid=state.currentBidder ? state.currentBid + state.minIncrement : state.currentBid;
+    const increment = getIncrementForBid(state.currentBid, state.minBidIncrementRules);
+    const minValidBid = state.currentBidder ? state.currentBid + increment : state.currentBid;
     if (amount < minValidBid) {
         return { success: false, message: `Bid must be at least ${minValidBid}` };
     }
@@ -278,4 +341,4 @@ const useRtm = async (userId) => {
     return { success: true };
 };
 
-module.exports = { initEngine, startNextPlayer, placeBid, pauseTimer, resumeTimer, useRtm };
+module.exports = { initEngine, startNextPlayer, placeBid, pauseTimer, resumeTimer, useRtm, getIncrementForBid };

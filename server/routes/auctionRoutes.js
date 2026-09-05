@@ -3,7 +3,7 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const express = require('express');
 const Player = require('../models/Player');
-const { startNextPlayer, resumeTimer, pauseTimer } = require('../auction/engine');
+const { startNextPlayer, resumeTimer, pauseTimer, getIncrementForBid } = require('../auction/engine');
 
 const router = express.Router();
 
@@ -80,6 +80,20 @@ router.put('/start',async (req,res)=>{
     }
 });
 
+router.get('/next-bid', protect, async (req, res) => {
+  try {
+    const state = await getOrCreateAuctionState();
+    if (!state.currentPlayer) {
+      return res.json({ nextBid: 0 });
+    }
+    const increment = getIncrementForBid(state.currentBid, state.minBidIncrementRules);
+    const nextBid = state.currentBidder ? state.currentBid + increment : state.currentBid;
+    res.json({ nextBid });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.put('/pause',async (req,res)=>{
     try{
         let state=await getOrCreateAuctionState();
@@ -106,7 +120,6 @@ router.put('/resume',async (req,res)=>{
         state.status='live';
         await state.save();
         resumeTimer();
-        req.io.emit('auction:resumed', { timerEndsAt: state.timerEndsAt });
         res.json(state);
     }
     catch(err){

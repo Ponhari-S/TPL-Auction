@@ -37,10 +37,16 @@ const auctionStateSchema=new mongoose.Schema({
     marqueeBasePrice: { type: Number, default: 4800000 },
     eliteBasePrice: { type: Number, default: 2400000 },
     rookieBasePrice: { type: Number, default: 1200000 },
-    minBidIncrementRules:{
-        type:Object,
-        default:{}
-    },
+    minBidIncrementRules: {
+        type: [{ upTo: Number, increment: Number }],
+        default: [
+          { upTo: 10000000, increment: 500000 },
+          { upTo: 20000000, increment: 1000000 },
+          { upTo: 50000000, increment: 2000000 },
+          { upTo: 100000000, increment: 5000000 },
+          { upTo: Infinity, increment: 10000000 }
+        ]
+      },
     squadSize:{
         type:Number,
         default: 6

@@ -24,7 +24,6 @@ const AdminDashboard = () => {
         <BuildQueue />
         <AuctionControls />
         <PendingTrades />
-        <SocketTest />
         <AddPlayer />
       </div>
     </div>
