@@ -194,7 +194,7 @@ router.put('/:id/give-captaincy',protect,async (req,res)=>{
         team.captain = player.user;
         await team.save();
         await User.findByIdAndUpdate(player.user, { role: 'captain', team: team._id });
-        await User.findByIdAndUpdate(req.user.id, { team: null });
+        await User.findByIdAndUpdate(req.user.id, { role: 'player', team: null });
 
         res.json(team);
     }

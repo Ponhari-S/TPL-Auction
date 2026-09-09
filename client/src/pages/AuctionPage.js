@@ -199,6 +199,10 @@ const AuctionPage = () => {
               </div>
             )}
 
+            {lastOutcome && (
+              <p className="text-slate-600 text-xs text-center mt-2">Next player coming up shortly...</p>
+            )}
+
             <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-8 sm:p-10 text-center shadow-2xl shadow-black/40">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs tracking-widest uppercase font-display mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />

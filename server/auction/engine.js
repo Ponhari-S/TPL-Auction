@@ -3,6 +3,9 @@ const Player = require('../models/Player');
 const Team = require('../models/Team');
 const mongoose = require('mongoose');
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const OUTCOME_DISPLAY_MS = 3000;
+
 let ioInstance = null;
 let currentTimer = null;
 let rtmTimer = null;
@@ -71,6 +74,7 @@ const finalizeSale = async (state,player) => {
     finally{
         await session.endSession();
     }
+    await delay(OUTCOME_DISPLAY_MS);
     await startNextPlayer();
 };
 
@@ -200,13 +204,14 @@ const handleTimeout=async ()=>{
         return;
         }
         await finalizeSale(state,player);
+        return;
     }
     else{
         if(player?.status==='unsold'){
             player.status='unsold-final';
             await player.save();
 
-            ioInstance.emit('auction:playerUnsoldFinal');
+            ioInstance.emit('auction:playerUnsoldFinal', { player });
             console.log(`UNSOLD-FINAL: ${player.name}`);
         }
         else{
@@ -230,6 +235,7 @@ const handleTimeout=async ()=>{
             }
         }
     }
+    await delay(OUTCOME_DISPLAY_MS);
     await startNextPlayer();
 };
 
