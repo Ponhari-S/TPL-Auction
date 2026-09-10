@@ -19,8 +19,8 @@ const Header = () => {
         .font-display { font-family: 'Oswald', sans-serif; }
       `}</style>
 
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
+      <div className="max-w-7xl mx-auto flex justify-between items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="w-2 h-2 rounded-full bg-[#f4b942] animate-pulse" />
           <h1 className="font-display text-lg sm:text-xl font-semibold text-white tracking-wide">
             TPL <span className="text-[#f4b942]">Auction</span>
@@ -56,8 +56,8 @@ const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 shrink-0">
             <span className="w-6 h-6 rounded-full bg-[#f4b942]/20 text-[#f4b942] text-xs font-semibold flex items-center justify-center">
               {user?.name?.charAt(0).toUpperCase()}
             </span>
@@ -66,13 +66,13 @@ const Header = () => {
             </span>
           </div>
 
-          <span className="sm:hidden text-slate-300 text-xs max-w-[70px] truncate">
+          <span className="sm:hidden text-slate-300 text-xs max-w-[90px] truncate shrink-0">
             {user?.name}
           </span>
 
           <button
             onClick={handleLogout}
-            className="bg-red-600/90 hover:bg-red-600 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+            className="bg-red-600/90 hover:bg-red-600 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
             Logout
           </button>
@@ -81,7 +81,7 @@ const Header = () => {
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle navigation menu"
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-colors"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               {menuOpen ? (
@@ -95,7 +95,7 @@ const Header = () => {
       </div>
 
       {menuOpen && (
-        <nav className="lg:hidden mt-3 pt-3 border-t border-white/10 flex flex-col gap-1">
+        <nav className="max-w-7xl mx-auto lg:hidden mt-3 pt-3 border-t border-white/10 flex flex-col gap-1">
           <Link
             to="/"
             onClick={() => setMenuOpen(false)}

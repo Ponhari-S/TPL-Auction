@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { formatPrice } from '../utils/formatCurrency';
 
 const PendingTrades = () => {
     const [trades, setTrades] = useState([]);
@@ -29,10 +30,25 @@ const PendingTrades = () => {
             setError(err.response?.data?.message || 'Failed to approve trade');
         }
     }
-    if (trades.length === 0) return null;
+
+    if (trades.length === 0) {
+      return (
+        <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/40">
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
+            .font-display { font-family: 'Oswald', sans-serif; }
+          `}</style>
+          <h2 className="font-display text-xl text-white tracking-tight mb-1">Trades Awaiting Approval</h2>
+          <p className="text-slate-500 text-xs mb-4">Proposed trades that require admin sign-off.</p>
+          <div className="flex items-center justify-center py-6 px-4 rounded-xl bg-white/[0.02] border border-white/5 border-dashed text-center">
+            <p className="text-slate-500 text-xs">No trades awaiting approval.</p>
+          </div>
+        </div>
+      );
+    }
 
   return (
-    <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
+    <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
         .font-display { font-family: 'Oswald', sans-serif; }
@@ -60,12 +76,12 @@ const PendingTrades = () => {
               <span className="text-[#f4b942]">
                 {t.offeredPlayer ? t.offeredPlayer.name : ''}
                 {t.offeredPlayer && t.offeredPurse > 0 && ' + '}
-                {t.offeredPurse > 0 && `₹${t.offeredPurse.toLocaleString()}`}
+                {t.offeredPurse > 0 && formatPrice(t.offeredPurse)}
               </span>
             </p>
             <button
               onClick={() => handleApprove(t._id)}
-              className="mt-3 bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] text-xs font-display font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="mt-3 w-full sm:w-auto bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] text-xs font-display font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               Approve Trade
             </button>

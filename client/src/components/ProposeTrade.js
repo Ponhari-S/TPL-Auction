@@ -41,7 +41,7 @@ const ProposeTrade = ({ myTeam }) => {
     }
 
   return (
-    <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
+    <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
         .font-display { font-family: 'Oswald', sans-serif; }
@@ -127,7 +127,7 @@ const ProposeTrade = ({ myTeam }) => {
 
         <button
           type="submit"
-          className="mt-2 bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-[15px] tracking-wide py-3 rounded-lg transition-colors"
+          className="mt-2 w-full sm:w-auto sm:self-end bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-[15px] tracking-wide px-6 py-3 rounded-lg transition-colors"
         >
           Send Trade Request
         </button>

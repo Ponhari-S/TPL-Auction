@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { formatPrice } from '../utils/formatCurrency';
 
 const SelectTeam = ({ onSelected }) => {
     const [error, setError] = useState("");
@@ -29,7 +30,7 @@ const SelectTeam = ({ onSelected }) => {
     };
 
   return (
-    <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
+    <div className="w-full max-w-3xl mx-auto bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
         .font-display { font-family: 'Oswald', sans-serif; }
@@ -66,7 +67,7 @@ const SelectTeam = ({ onSelected }) => {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                     <span className="text-slate-400 text-xs sm:text-sm">
-                        Purse: <span className="text-[#f4b942] font-display tabular-nums">₹{team.purse.toLocaleString()}</span>
+                        Purse: <span className="text-[#f4b942] font-display tabular-nums">{formatPrice(team.purse)}</span>
                     </span>
                     <span className="text-slate-600 group-hover:text-[#f4b942] transition-colors">→</span>
                 </div>

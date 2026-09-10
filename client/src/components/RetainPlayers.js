@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from "../api/axios";
+import { formatPrice } from "../utils/formatCurrency";
 
 const RetainPlayers = () => {
     const [players, setPlayers] = useState("");
@@ -25,7 +26,7 @@ const RetainPlayers = () => {
         setError("");
         try {
             const res=await api.put(`/players/${playerId}/retain`);
-            setMessage(`${res.data.name} retained for ₹${res.data.retentionPrice.toLocaleString()}`);
+            setMessage(`${res.data.name} retained for ${formatPrice(res.data.retentionPrice)}`);
             fetchPlayers();
         }
         catch (err) {
@@ -34,7 +35,7 @@ const RetainPlayers = () => {
     };
 
   return (
-    <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
+    <div className="w-full max-w-4xl mx-auto bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
         .font-display { font-family: 'Oswald', sans-serif; }
@@ -64,7 +65,7 @@ const RetainPlayers = () => {
         {players.length > 0 && players.map((player) => (
           <div
             key={player._id}
-            className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-xl"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 border border-white/10 p-4 rounded-xl"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <span className="shrink-0 w-9 h-9 rounded-full bg-[#f4b942]/15 text-[#f4b942] font-display font-semibold text-sm flex items-center justify-center">
@@ -78,7 +79,7 @@ const RetainPlayers = () => {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => handleRetain(player._id)}
-                className="bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                className="w-full sm:w-auto bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
               >
                 Retain
               </button>

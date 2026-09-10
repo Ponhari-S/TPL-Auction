@@ -10,7 +10,7 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
-    stumps: "",
+    stumpsId: "",
     email: "",
     password: "",
     role: "player"
@@ -54,7 +54,8 @@ const Auth = () => {
         .font-body { font-family: 'Inter', sans-serif; }
       `}</style>
 
-      <div className="relative lg:w-[46%] lg:h-screen px-6 py-10 sm:px-10 lg:px-14 lg:py-16 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0d1526] via-[#0a0f1e] to-[#0a1f14] font-body">
+      {/* Left Promo Banner */}
+      <div className="relative lg:w-[46%] lg:h-screen px-6 py-8 sm:px-10 lg:px-14 lg:py-16 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0d1526] via-[#0a0f1e] to-[#0a1f14] font-body shrink-0">
         <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-[#22c55e]/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-[#f4b942]/10 blur-3xl pointer-events-none" />
 
@@ -64,12 +65,12 @@ const Auth = () => {
             TPL Auction
           </span>
 
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.05] text-white mt-6 tracking-tight">
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-[3.4rem] leading-[1.08] text-white mt-4 sm:mt-6 tracking-tight">
             Bid. Build.<br />
             <span className="text-[#f4b942]">Own the Squad.</span>
           </h1>
 
-          <p className="text-slate-400 mt-5 max-w-sm text-[15px] leading-relaxed">
+          <p className="text-slate-400 mt-3 sm:mt-5 max-w-sm text-sm sm:text-[15px] leading-relaxed">
             Step into the auction floor. Track player stats, place live bids, and assemble a franchise that dominates the season.
           </p>
         </div>
@@ -110,9 +111,10 @@ const Auth = () => {
         </svg>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16 lg:py-6 font-body lg:h-screen lg:overflow-y-auto">
+      {/* Right Form Container */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-10 lg:px-16 lg:py-6 font-body lg:h-screen lg:overflow-y-auto">
         <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-          <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 mb-8 lg:mb-5">
+          <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 mb-6 sm:mb-8 lg:mb-5">
             <button
               type="button"
               onClick={() => setIsSignUp(true)}
