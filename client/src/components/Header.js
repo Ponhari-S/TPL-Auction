@@ -14,10 +14,6 @@ const Header = () => {
     }
   return (
     <header className="sticky top-0 z-20 bg-[#0a0f1e]/95 backdrop-blur border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
 
       <div className="max-w-7xl mx-auto flex justify-between items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2 shrink-0">

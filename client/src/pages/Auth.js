@@ -48,11 +48,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden w-full bg-[#0a0f1e] flex flex-col lg:flex-row">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-        .font-body { font-family: 'Inter', sans-serif; }
-      `}</style>
 
       {/* Left Promo Banner */}
       <div className="relative lg:w-[46%] lg:h-screen px-6 py-8 sm:px-10 lg:px-14 lg:py-16 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0d1526] via-[#0a0f1e] to-[#0a1f14] font-body shrink-0">

@@ -70,11 +70,6 @@ const SocketTest = () => {
 
   return (
     <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
-
       <div className="flex items-center justify-between gap-4 mb-6">
         <h2 className="font-display text-2xl text-white tracking-tight">Socket Test</h2>
         <span className={`px-3 py-1 rounded-full border text-xs uppercase tracking-wider whitespace-nowrap flex items-center gap-1.5 ${

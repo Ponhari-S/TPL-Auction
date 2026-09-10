@@ -28,11 +28,6 @@ const BuildQueue = () => {
     }
   return (
     <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
-
       <h2 className="font-display text-2xl text-white tracking-tight mb-1">Auction Queue</h2>
       <p className="text-slate-500 text-sm mb-6">
         Rebuilds the queue from all currently registered players, ordered Marquee → Elite → Rookie.

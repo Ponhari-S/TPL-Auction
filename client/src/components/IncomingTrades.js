@@ -42,10 +42,6 @@ const IncomingTrades = () => {
     if (trades.length === 0) {
       return (
         <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-            .font-display { font-family: 'Oswald', sans-serif; }
-          `}</style>
           <h2 className="font-display text-2xl text-white tracking-tight mb-1">Incoming Trades</h2>
           <p className="text-slate-500 text-sm mb-6">Trade offers received from other franchise captains.</p>
           <div className="flex items-center justify-center py-12 px-4 rounded-xl bg-white/[0.02] border border-white/5 border-dashed text-center">
@@ -57,11 +53,6 @@ const IncomingTrades = () => {
 
   return (
     <div className="w-full bg-[#0f1729] border border-[#f4b942]/30 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
-
       <h2 className="font-display text-2xl text-white tracking-tight mb-1">
         Incoming Trades <span className="text-[#f4b942]">({trades.length})</span>
       </h2>

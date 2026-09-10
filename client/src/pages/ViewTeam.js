@@ -83,10 +83,6 @@ function ViewTeam() {
 
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {loading && (

@@ -31,11 +31,6 @@ const SelectTeam = ({ onSelected }) => {
 
   return (
     <div className="w-full max-w-3xl mx-auto bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
-
       <h2 className="font-display text-2xl text-white tracking-tight mb-1">Select Your Team</h2>
       <p className="text-slate-500 text-sm mb-6">Pick an unassigned franchise to lead into the auction.</p>
 

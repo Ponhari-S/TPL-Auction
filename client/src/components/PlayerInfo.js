@@ -65,11 +65,6 @@ const PlayerInfo = () => {
 
     return (
         <div className="w-full max-w-3xl mx-auto bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-          <style>{`
-              @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-              .font-display { font-family: 'Oswald', sans-serif; }
-          `}</style>
-
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div>
                   <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight">{player.name}</h2>

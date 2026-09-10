@@ -57,11 +57,6 @@ const AuctionControls = () => {
 
   return (
     <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
-        .font-display { font-family: 'Oswald', sans-serif; }
-      `}</style>
-
       <div className="flex items-center justify-between gap-4 mb-6">
         <h2 className="font-display text-2xl text-white tracking-tight">Auction Controls</h2>
         <span className={`px-3 py-1 rounded-full border text-xs uppercase tracking-wider capitalize whitespace-nowrap flex items-center gap-1.5 ${statusStyles[status] || "bg-white/5 text-slate-300 border-white/10"}`}>
