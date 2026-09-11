@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
