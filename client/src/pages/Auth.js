@@ -29,7 +29,7 @@ const Auth = () => {
     setError("");
 
     try {
-      const endpoint = isSignUp ? "api/auth/signup" : "api/auth/login";
+      const endpoint = isSignUp ? "auth/signup" : "auth/login";
       const payload = isSignUp ? formData : { email: formData.email, password: formData.password };
       const res = await api.post(endpoint, payload);
       
