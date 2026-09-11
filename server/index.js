@@ -25,9 +25,9 @@ const allowedOrigins = [
     process.env.CLIENT_URL
   ].filter(Boolean);
   
-app.use(cors({ origin: allowedOrigins }));
 const app=express();
 app.use(express.json());
+app.use(cors({ origin: allowedOrigins }));
 
 app.use('/api/auth',authRoutes);
 app.use('/api/players',playerRoutes);
