@@ -3,6 +3,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
+import api from '../api/axios';
 
 const Auth = () => {
   const dispatch=useDispatch();
@@ -31,7 +32,7 @@ const Auth = () => {
     try {
       const endpoint = isSignUp ? "api/auth/signup" : "api/auth/login";
       const payload = isSignUp ? formData : { email: formData.email, password: formData.password };
-      const res = await axios.post(`http://localhost:5000/${endpoint}`, payload);
+      const res = await api.post(endpoint, payload);
       
       if(isSignUp){
         console.log("SignedUp:",res.data);
