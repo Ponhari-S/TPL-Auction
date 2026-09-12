@@ -156,10 +156,10 @@ const AuctionRules = () => {
               <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">
                 Bid Increment Tiers
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                 {rules.minBidIncrementRules?.map((tier, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-slate-500 text-xs w-28 shrink-0">
+                  <div key={i} className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-slate-400 text-xs w-24 shrink-0">
                       Up to {tier.upTo === null ? '∞' : formatPrice(tier.upTo)}
                     </span>
                     <input
@@ -170,7 +170,8 @@ const AuctionRules = () => {
                         updated[i] = { ...updated[i], increment: Number(e.target.value) };
                         setRules({ ...rules, minBidIncrementRules: updated });
                       }}
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm"
+                      placeholder="Increment"
+                      className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
                     />
                   </div>
                 ))}
