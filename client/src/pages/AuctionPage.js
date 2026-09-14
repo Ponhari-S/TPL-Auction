@@ -7,166 +7,171 @@ import CountdownTimer from './CountdownTimer';
 import { formatPrice } from '../utils/formatCurrency';
 
 const AuctionPage = () => {
-    const { user, token } = useSelector((state) => state.auth);
-    const [player, setPlayer] = useState("");
-    const [currentBid, setCurrentBid] = useState(0);
-    const [currentBidder, setCurrentBidder] = useState(null);
-    // eslint-disable-next-line no-unused-vars
-    const [minIncrement, setMinIncrement] = useState(5000000);
-    const [myteam, setMyteam] = useState(null);
-    const [teams, setTeams] = useState(null);
-    const [bidError, setBidError] = useState("");
-    const [squadSize, setSquadSize] = useState(6);
-    const [timerEndsAt, setTimerEndsAt] = useState(null);
-    const [myTeamId, setMyTeamId] = useState(null);
-    const [rtmWindow, setRtmWindow] = useState(null);
-    const [isPaused, setIsPaused] = useState(false);
-    const [lastOutcome, setLastOutcome] = useState(null);
-    const [nextValidBid, setNextValidBid] = useState(0);
+  const { user, token } = useSelector((state) => state.auth);
+  const [player, setPlayer] = useState("");
+  const [currentBid, setCurrentBid] = useState(0);
+  const [currentBidder, setCurrentBidder] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [minIncrement, setMinIncrement] = useState(5000000);
+  const [myteam, setMyteam] = useState(null);
+  const [teams, setTeams] = useState(null);
+  const [bidError, setBidError] = useState("");
+  const [squadSize, setSquadSize] = useState(6);
+  const [timerEndsAt, setTimerEndsAt] = useState(null);
+  const [myTeamId, setMyTeamId] = useState(null);
+  const [rtmWindow, setRtmWindow] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [lastOutcome, setLastOutcome] = useState(null);
+  const [nextValidBid, setNextValidBid] = useState(0);
 
-    useEffect(() => {
-      const fetchInfo = async () => {
-        try {
-          const rulesRes = await api.get('auction/rules');
-          setMinIncrement(rulesRes.data.minIncrement);
-          setSquadSize(rulesRes.data.squadSize);
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const rulesRes = await api.get('auction/rules');
+        setMinIncrement(rulesRes.data.minIncrement);
+        setSquadSize(rulesRes.data.squadSize);
 
-          const teamRes = await api.get('/teams');
-          setTeams(teamRes.data);
+        const teamRes = await api.get('/teams');
+        setTeams(teamRes.data);
 
-          if (user?.role === 'captain') {
-            const team = teamRes.data.find((t) => t.captain._id === user._id || t.captain === user._id);
-            setMyteam(team || null);
-            setMyTeamId(team._id || null);
-          }
-          if (user?.role === 'player') {
-            const profileRes = await api.get('/players/me/profile');
-            setMyTeamId(profileRes.data.soldTo || profileRes.data.retainedBy || null);
-          }
+        if (user?.role === 'captain') {
+          const team = teamRes.data.find((t) => t.captain._id === user._id || t.captain === user._id);
+          setMyteam(team || null);
+          setMyTeamId(team._id || null);
         }
-        catch (err) {
-          console.error('Failed to fetch auction/team info', err);
+        if (user?.role === 'player') {
+          const profileRes = await api.get('/players/me/profile');
+          setMyTeamId(profileRes.data.soldTo || profileRes.data.retainedBy || null);
         }
       }
-      fetchInfo();
-    }, [user]);
-
-    useEffect(() => {
-      if (!player) return;
-      api.get('/auction/next-bid').then((res) => setNextValidBid(res.data.nextBid));
-    }, [player, currentBid,currentBidder]);
-    
-    const canBid = user?.role === 'captain' && myteam && myteam.players.length < squadSize && myteam.remainingPurse >= nextValidBid;
-
-    const handleBid = () => {
-      setBidError('');
-      socket.emit('bid:place', { token, amount: nextValidBid });
+      catch (err) {
+        console.error('Failed to fetch auction/team info', err);
+      }
     }
+    fetchInfo();
+  }, [user]);
 
-    useEffect(() => {
-        socket.on('auction:playerUp', (data) => {
-            setPlayer(data.player);
-            setCurrentBid(data.currentBid);
-            setCurrentBidder(null);
-            setTimerEndsAt(data.timerEndsAt);
-            setLastOutcome(null);
-        });
+  useEffect(() => {
+    if (!player) return;
+    api.get('/auction/next-bid').then((res) => setNextValidBid(res.data.nextBid));
+  }, [player, currentBid, currentBidder]);
 
-        socket.on('auction:sync', (data) => {
-            if (data.status === 'live') {
-                setPlayer(data.player);
-                setCurrentBid(data.currentBid);
-                setCurrentBidder(data.currentBidder);
-                setTimerEndsAt(data.timerEndsAt);
-            }
-        });
+  const isHighestBidder = currentBidder && (
+    (currentBidder._id && currentBidder._id === myTeamId) ||
+    currentBidder === myTeamId
+  );
 
-        socket.on('auction:bidUpdate', (data) => {
-          setCurrentBid(data.currentBid);
-          setCurrentBidder(data.currentBidder);
-          setTimerEndsAt(data.timerEndsAt);
-        });
+  const canBid = !isHighestBidder && user?.role === 'captain' && myteam && myteam.players.length < squadSize && myteam.remainingPurse >= nextValidBid;
 
-        socket.on('auction:paused', () => {
-          setIsPaused(true);
-        });
+  const handleBid = () => {
+    setBidError('');
+    socket.emit('bid:place', { token, amount: nextValidBid });
+  }
 
-        socket.on('auction:resumed', (data) => {
-          setIsPaused(false);
-          setTimerEndsAt(data.timerEndsAt);
-        });
+  useEffect(() => {
+    socket.on('auction:playerUp', (data) => {
+      setPlayer(data.player);
+      setCurrentBid(data.currentBid);
+      setCurrentBidder(null);
+      setTimerEndsAt(data.timerEndsAt);
+      setLastOutcome(null);
+    });
 
-        socket.on('bid:rejected', (data) => {
-          setBidError(data.message);
-        });
+    socket.on('auction:sync', (data) => {
+      if (data.status === 'live') {
+        setPlayer(data.player);
+        setCurrentBid(data.currentBid);
+        setCurrentBidder(data.currentBidder);
+        setTimerEndsAt(data.timerEndsAt);
+      }
+    });
 
-        socket.on('auction:playerSold', (data) => {
-          setTeams((prevTeams) =>
-            prevTeams
-              ? prevTeams.map((t) =>
-                  t._id === data.team._id
-                    ? { ...t, remainingPurse: t.remainingPurse - data.soldPrice, players: [...t.players, data.player] }
-                    : t
-                )
-              : prevTeams
-          );
-          setMyteam((prev) =>
-            prev && prev._id === data.team._id
-              ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player] }
-              : prev
-          );
-          setRtmWindow(null);
-          setLastOutcome({
-            type: 'sold',
-            playerName: data.player.name,
-            teamName: data.team.name,
-            price: data.soldPrice
-          });
-        });
+    socket.on('auction:bidUpdate', (data) => {
+      setCurrentBid(data.currentBid);
+      setCurrentBidder(data.currentBidder);
+      setTimerEndsAt(data.timerEndsAt);
+    });
 
-        socket.on('auction:ended', (data) => {
-          setPlayer(null);
-          setCurrentBid(0);
-          setCurrentBidder(null);
-          setTimerEndsAt(null);
-        })
+    socket.on('auction:paused', () => {
+      setIsPaused(true);
+    });
 
-        socket.on('auction:rtmUsed', (data) => {
-          setCurrentBid(data.currentBid);
-          setCurrentBidder(data.currentBidder);
-          setTimerEndsAt(data.timerEndsAt);
-          setRtmWindow(null);
-        });
+    socket.on('auction:resumed', (data) => {
+      setIsPaused(false);
+      setTimerEndsAt(data.timerEndsAt);
+    });
 
-        socket.on('auction:rtmWindow', (data) => {
-          setRtmWindow(data);
-        });
+    socket.on('bid:rejected', (data) => {
+      setBidError(data.message);
+    });
 
-        socket.on('auction:playerUnsold', (data) => {
-          setLastOutcome({ type: 'unsold', playerName: data.player.name });
-        });
+    socket.on('auction:playerSold', (data) => {
+      setTeams((prevTeams) =>
+        prevTeams
+          ? prevTeams.map((t) =>
+            t._id === data.team._id
+              ? { ...t, remainingPurse: t.remainingPurse - data.soldPrice, players: [...t.players, data.player] }
+              : t
+          )
+          : prevTeams
+      );
+      setMyteam((prev) =>
+        prev && prev._id === data.team._id
+          ? { ...prev, remainingPurse: prev.remainingPurse - data.soldPrice, players: [...prev.players, data.player] }
+          : prev
+      );
+      setRtmWindow(null);
+      setLastOutcome({
+        type: 'sold',
+        playerName: data.player.name,
+        teamName: data.team.name,
+        price: data.soldPrice
+      });
+    });
 
-        socket.on('auction:playerUnsoldFinal', (data) => {
-          setLastOutcome({ type: 'unsold-final', playerName: data.player.name });
-        });
+    socket.on('auction:ended', (data) => {
+      setPlayer(null);
+      setCurrentBid(0);
+      setCurrentBidder(null);
+      setTimerEndsAt(null);
+    })
 
-        socket.emit('auction:requestSync');
+    socket.on('auction:rtmUsed', (data) => {
+      setCurrentBid(data.currentBid);
+      setCurrentBidder(data.currentBidder);
+      setTimerEndsAt(data.timerEndsAt);
+      setRtmWindow(null);
+    });
 
-        return () => {
-            socket.off('auction:playerUp');
-            socket.off('auction:sync');
-            socket.off('auction:bidUpdate');
-            socket.off('bid:rejected');
-            socket.off('auction:playerSold');
-            socket.off('auction:ended');
-            socket.off('auction:rtmUsed');
-            socket.off('auction:rtmWindow');
-            socket.off('auction:paused');
-            socket.off('auction:resumed');
-            socket.off('auction:playerUnsold');
-            socket.off('auction:playerUnsoldFinal');
-        };
-    }, []);
+    socket.on('auction:rtmWindow', (data) => {
+      setRtmWindow(data);
+    });
+
+    socket.on('auction:playerUnsold', (data) => {
+      setLastOutcome({ type: 'unsold', playerName: data.player.name });
+    });
+
+    socket.on('auction:playerUnsoldFinal', (data) => {
+      setLastOutcome({ type: 'unsold-final', playerName: data.player.name });
+    });
+
+    socket.emit('auction:requestSync');
+
+    return () => {
+      socket.off('auction:playerUp');
+      socket.off('auction:sync');
+      socket.off('auction:bidUpdate');
+      socket.off('bid:rejected');
+      socket.off('auction:playerSold');
+      socket.off('auction:ended');
+      socket.off('auction:rtmUsed');
+      socket.off('auction:rtmWindow');
+      socket.off('auction:paused');
+      socket.off('auction:resumed');
+      socket.off('auction:playerUnsold');
+      socket.off('auction:playerUnsoldFinal');
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
@@ -183,11 +188,10 @@ const AuctionPage = () => {
             ) : (
               <>
                 {lastOutcome && (
-                  <div className={`px-4 py-3 rounded-xl border text-sm font-display tracking-wide ${
-                    lastOutcome.type === 'sold'
-                      ? 'bg-[#22c55e]/10 border-[#22c55e]/30 text-[#22c55e]'
-                      : 'bg-white/5 border-white/10 text-slate-400'
-                  }`}>
+                  <div className={`px-4 py-3 rounded-xl border text-sm font-display tracking-wide ${lastOutcome.type === 'sold'
+                    ? 'bg-[#22c55e]/10 border-[#22c55e]/30 text-[#22c55e]'
+                    : 'bg-white/5 border-white/10 text-slate-400'
+                    }`}>
                     {lastOutcome.type === 'sold' && (
                       <>SOLD: {lastOutcome.playerName} → {lastOutcome.teamName} for {formatPrice(lastOutcome.price)}</>
                     )}
@@ -262,7 +266,7 @@ const AuctionPage = () => {
                         disabled={!canBid || rtmWindow || isPaused}
                         className="w-full bg-[#f4b942] hover:bg-[#e5aa2f] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0f1e] font-display font-semibold py-3 rounded-lg text-lg tracking-wide transition-colors"
                       >
-                        Bid {formatPrice(nextValidBid)}
+                        {isHighestBidder ? 'You are the highest bidder' : `Bid ${formatPrice(nextValidBid)}`}
                       </button>
 
                       {rtmWindow && myTeamId === rtmWindow.eligibleTeamId && (
@@ -338,11 +342,10 @@ const AuctionPage = () => {
                   return (
                     <div
                       key={team._id}
-                      className={`rounded-xl p-4 border transition-all ${
-                        isMyTeam
-                          ? "bg-[#f4b942]/5 border-[#f4b942]/30 shadow-lg shadow-black/20"
-                          : "bg-[#0f1729] border-white/10"
-                      }`}
+                      className={`rounded-xl p-4 border transition-all ${isMyTeam
+                        ? "bg-[#f4b942]/5 border-[#f4b942]/30 shadow-lg shadow-black/20"
+                        : "bg-[#0f1729] border-white/10"
+                        }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2.5 min-w-0">

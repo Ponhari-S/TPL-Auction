@@ -251,6 +251,9 @@ const placeBid = async (userId,amount)=>{
     if (!team) {
         return { success: false, message: 'You do not own a team' };
     }
+    if(state.currentBidder && state.currentBidder.toString()===team._id.toString()){
+      return { success:false, message: 'You are already the highest bidder' };
+    }
     if (team.players.length >= state.squadSize) {
         return { success: false, message: 'Your squad is already full' };
     }
@@ -268,7 +271,8 @@ const placeBid = async (userId,amount)=>{
     const updatedState=await AuctionState.findOneAndUpdate({
         _id:"singleton",
         currentBid: state.currentBid,
-        currentPlayer: state.currentPlayer
+        currentPlayer: state.currentPlayer,
+        currentBidder: { $ne: team._id }
     },
     {
         currentBid: amount,

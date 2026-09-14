@@ -1,19 +1,19 @@
-const express= require('express');
-const cors=require('cors');
+const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const { connectDB } = require('./config/db');
 const { Server } = require('socket.io');
 const http = require('http');
-const {initEngine} = require('./auction/engine');
+const { initEngine } = require('./auction/engine');
 const jwt = require('jsonwebtoken');
 const Team = require('./models/Team');
 const AuctionState = require('./models/AuctionState');
 const { placeBid, useRtm } = require('./auction/engine');
 
 const authRoutes = require('./routes/authRoutes');
-const protect=require('./middleware/authMiddleware');
-const playerRoutes=require('./routes/playerRoutes');
-const teamRoutes=require('./routes/teamRoutes');
+const protect = require('./middleware/authMiddleware');
+const playerRoutes = require('./routes/playerRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
 const Player = require('./models/Player');
 const tradeRoutes = require('./routes/tradeRoutes');
@@ -23,36 +23,36 @@ connectDB();
 const allowedOrigins = [
     'http://localhost:3000',
     process.env.CLIENT_URL
-  ].filter(Boolean);
-  
-const app=express();
+].filter(Boolean);
+
+const app = express();
 app.use(express.json());
 app.use(cors({ origin: allowedOrigins }));
 
-app.use('/api/auth',authRoutes);
-app.use('/api/players',playerRoutes);
-app.use('/api/teams',teamRoutes);
-app.use('/api/trades',tradeRoutes);
-app.use((req,res,next)=>{
-    req.io=io;
+app.use('/api/auth', authRoutes);
+app.use('/api/players', playerRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/trades', tradeRoutes);
+app.use((req, res, next) => {
+    req.io = io;
     next();
 });
-app.use('/api/auction',auctionRoutes);
+app.use('/api/auction', auctionRoutes);
 
-app.get('/api/test-protected',protect,(req,res)=>{
-    res.status(200).json({message:"You are Authorized!!",user:req.user});
+app.get('/api/test-protected', protect, (req, res) => {
+    res.status(200).json({ message: "You are Authorized!!", user: req.user });
 })
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send("Auction API is running");
 })
 
-const server=http.createServer(app);
+const server = http.createServer(app);
 
-const io = new Server(server,{
-    cors:{
+const io = new Server(server, {
+    cors: {
         origin: allowedOrigins,
-        methods: ['GET','POST']
+        methods: ['GET', 'POST']
     }
 });
 
@@ -60,87 +60,88 @@ initEngine(io);
 
 const sendSyncIfLive = async (socket) => {
     try {
-      const state = await AuctionState.findById('singleton');
-      if (state && state.status === 'live' && state.currentPlayer) {
-        const player = await Player.findById(state.currentPlayer);
-        const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
-        socket.emit('auction:sync', {
-          status: state.status,
-          player,
-          currentBid: state.currentBid,
-          currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
-          timerEndsAt: state.timerEndsAt
-        });
-      }
-    } catch (err) {
-      console.error('Sync failed:', err.message);
-    }
-  };
-
-io.on('connection',async (socket)=>{
-    console.log('Client connected:', socket.id);
-
-    try{
-        const state=await AuctionState.findById('singleton');
-        if(state && state.status=='live' && state.currentPlayer){
+        const state = await AuctionState.findById('singleton');
+        if (state && state.status === 'live' && state.currentPlayer) {
             const player = await Player.findById(state.currentPlayer);
-            socket.emit('auction:sync',{
-                status:state.status,
+            const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
+            socket.emit('auction:sync', {
+                status: state.status,
                 player,
                 currentBid: state.currentBid,
-                currentBidder: state.currentBidder,
+                currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
+                timerEndsAt: state.timerEndsAt
+            });
+        }
+    } catch (err) {
+        console.error('Sync failed:', err.message);
+    }
+};
+
+io.on('connection', async (socket) => {
+    console.log('Client connected:', socket.id);
+
+    try {
+        const state = await AuctionState.findById('singleton');
+        if (state && state.status == 'live' && state.currentPlayer) {
+            const player = await Player.findById(state.currentPlayer);
+            const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
+            socket.emit('auction:sync', {
+                status: state.status,
+                player,
+                currentBid: state.currentBid,
+                currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
                 timerEndsAt: state.timerEndsAt
             });
         }
     }
-    catch(err){
+    catch (err) {
         console.error('Sync on connect failed:', err.message);
     }
 
     sendSyncIfLive(socket);
 
-  socket.on('auction:requestSync', () => {
-    sendSyncIfLive(socket);
-  });
+    socket.on('auction:requestSync', () => {
+        sendSyncIfLive(socket);
+    });
 
-    socket.on('ping-test',()=>{
+    socket.on('ping-test', () => {
         socket.emit('pong-test', 'Hello from server');
     });
 
-    socket.on('rtm:use',async ({token})=>{
-        try{
-            const decoded=jwt.verify(token,process.env.JWT_SECRET);
+    socket.on('rtm:use', async ({ token }) => {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const result = await useRtm(decoded.id);
-            if(!result.success){
-                socket.emit('bid:rejected',{message: result.message})
+            if (!result.success) {
+                socket.emit('bid:rejected', { message: result.message })
             }
         }
-        catch(err){
-            socket.emit('bid:rejected',{message: 'Invalid or expired session'});
+        catch (err) {
+            socket.emit('bid:rejected', { message: 'Invalid or expired session' });
         }
     });
 
-    socket.on('bid:place', async ({token,amount})=>{
-        try{
-            const decoded=jwt.verify(token,process.env.JWT_SECRET);
-            const result=await placeBid(decoded.id,amount);
-            if(!result.success){
-                socket.emit('bid:rejected',{ message: result.message });
+    socket.on('bid:place', async ({ token, amount }) => {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const result = await placeBid(decoded.id, amount);
+            if (!result.success) {
+                socket.emit('bid:rejected', { message: result.message });
             }
         }
-        catch(err){
-            socket.emit('bid:rejected',{message: 'Invalid or expired session'});
+        catch (err) {
+            socket.emit('bid:rejected', { message: 'Invalid or expired session' });
         }
     })
 
-    socket.on('disconnect',()=>{
+    socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id)
     });
 
 });
 
-const PORT=process.env.PORT;
+const PORT = process.env.PORT;
 
-server.listen(PORT,()=>{
+server.listen(PORT, () => {
     console.log(`Server is running in port ${PORT}`);
 })
