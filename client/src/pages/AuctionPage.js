@@ -5,6 +5,7 @@ import api from "../api/axios";
 import { useSelector } from 'react-redux';
 import CountdownTimer from './CountdownTimer';
 import { formatPrice } from '../utils/formatCurrency';
+import OutcomeModal from '../components/OutcomeModal';
 
 const AuctionPage = () => {
   const { user, token } = useSelector((state) => state.auth);
@@ -124,6 +125,7 @@ const AuctionPage = () => {
       setLastOutcome({
         type: 'sold',
         playerName: data.player.name,
+        role: data.player.role,
         teamName: data.team.name,
         price: data.soldPrice
       });
@@ -134,7 +136,8 @@ const AuctionPage = () => {
       setCurrentBid(0);
       setCurrentBidder(null);
       setTimerEndsAt(null);
-    })
+      setLastOutcome(null);
+    });
 
     socket.on('auction:rtmUsed', (data) => {
       setCurrentBid(data.currentBid);
@@ -148,11 +151,19 @@ const AuctionPage = () => {
     });
 
     socket.on('auction:playerUnsold', (data) => {
-      setLastOutcome({ type: 'unsold', playerName: data.player.name });
+      setLastOutcome({
+        type: 'unsold',
+        playerName: data.player.name,
+        role: data.player.role
+      });
     });
 
     socket.on('auction:playerUnsoldFinal', (data) => {
-      setLastOutcome({ type: 'unsold-final', playerName: data.player.name });
+      setLastOutcome({
+        type: 'unsold-final',
+        playerName: data.player.name,
+        role: data.player.role
+      });
     });
 
     socket.emit('auction:requestSync');
@@ -176,6 +187,7 @@ const AuctionPage = () => {
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
       <Header />
+      <OutcomeModal outcome={lastOutcome} onClose={() => setLastOutcome(null)} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Main Auction Section */}
@@ -187,26 +199,6 @@ const AuctionPage = () => {
               </div>
             ) : (
               <>
-                {lastOutcome && (
-                  <div className={`px-4 py-3 rounded-xl border text-sm font-display tracking-wide ${lastOutcome.type === 'sold'
-                    ? 'bg-[#22c55e]/10 border-[#22c55e]/30 text-[#22c55e]'
-                    : 'bg-white/5 border-white/10 text-slate-400'
-                    }`}>
-                    {lastOutcome.type === 'sold' && (
-                      <>SOLD: {lastOutcome.playerName} → {lastOutcome.teamName} for {formatPrice(lastOutcome.price)}</>
-                    )}
-                    {lastOutcome.type === 'unsold' && (
-                      <>UNSOLD: {lastOutcome.playerName} — back in the queue</>
-                    )}
-                    {lastOutcome.type === 'unsold-final' && (
-                      <>UNSOLD: {lastOutcome.playerName} — removed from auction</>
-                    )}
-                  </div>
-                )}
-
-                {lastOutcome && (
-                  <p className="text-slate-600 text-xs text-center -mt-2">Next player coming up shortly...</p>
-                )}
 
                 <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 lg:p-10 text-center shadow-2xl shadow-black/40">
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs tracking-widest uppercase font-display mb-6">
