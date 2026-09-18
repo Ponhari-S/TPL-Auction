@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import CountdownTimer from './CountdownTimer';
 import { formatPrice } from '../utils/formatCurrency';
 import OutcomeModal from '../components/OutcomeModal';
+import BidHistory from '../components/BidHistory';
 
 const AuctionPage = () => {
   const { user, token } = useSelector((state) => state.auth);
@@ -309,6 +310,7 @@ const AuctionPage = () => {
                       <p className="font-display text-xl text-white tabular-nums">{player.stats.strikeRate}</p>
                     </div>
                   </div>
+                  <BidHistory playerId={player._id} key={currentBid}/>
                 </div>
               </>
             )}

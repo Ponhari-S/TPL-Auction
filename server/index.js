@@ -109,30 +109,44 @@ io.on('connection', async (socket) => {
     });
 
     socket.on('rtm:use', async ({ token }) => {
+        let decoded;
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (!token) throw new Error('No token provided');
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (jwtErr) {
+            return socket.emit('bid:rejected', { message: 'Invalid or expired session' });
+        }
+
+        try {
             const result = await useRtm(decoded.id);
             if (!result.success) {
-                socket.emit('bid:rejected', { message: result.message })
+                socket.emit('bid:rejected', { message: result.message });
             }
-        }
-        catch (err) {
-            socket.emit('bid:rejected', { message: 'Invalid or expired session' });
+        } catch (err) {
+            console.error('rtm:use error:', err);
+            socket.emit('bid:rejected', { message: 'An unexpected error occurred processing RTM' });
         }
     });
 
     socket.on('bid:place', async ({ token, amount }) => {
+        let decoded;
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (!token) throw new Error('No token provided');
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (jwtErr) {
+            return socket.emit('bid:rejected', { message: 'Invalid or expired session' });
+        }
+
+        try {
             const result = await placeBid(decoded.id, amount);
             if (!result.success) {
                 socket.emit('bid:rejected', { message: result.message });
             }
+        } catch (err) {
+            console.error('bid:place error:', err);
+            socket.emit('bid:rejected', { message: 'An unexpected error occurred placing bid' });
         }
-        catch (err) {
-            socket.emit('bid:rejected', { message: 'Invalid or expired session' });
-        }
-    })
+    });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id)

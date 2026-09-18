@@ -1,6 +1,6 @@
 import Auth from "./pages/Auth";
 import { useSelector } from "react-redux";
-import { BrowserRouter,Routes,Route,Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ViewTeam from "./pages/ViewTeam";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -9,14 +9,14 @@ import { useEffect } from "react";
 import socket from "./socket/socket";
 import SummaryPage from "./pages/SummaryPage";
 
-const ProtectedRoute = ({children}) =>{
-  const {token}=useSelector((state)=>state.auth);
+const ProtectedRoute = ({ children }) => {
+  const { token } = useSelector((state) => state.auth);
 
   return token ? children : <Navigate to="/login" />;
 }
 
 function App() {
-  const {token}=useSelector((state)=>state.auth);
+  const { token } = useSelector((state) => state.auth);
   useEffect(() => {
     if (token) {
       socket.connect();
@@ -25,12 +25,12 @@ function App() {
       socket.disconnect();
     };
   }, [token]);
-  
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={
-          useSelector((state)=>state.auth.token) ? <Navigate to="/" /> : <Auth />
+          useSelector((state) => state.auth.token) ? <Navigate to="/" /> : <Auth />
         } />
         <Route path="/" element={<ProtectedRoute>
           <Home />

@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice'
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { user } = useSelector((state) => state.auth)
-    const [menuOpen, setMenuOpen] = useState(false);
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
-    }
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  }
   return (
     <header className="sticky top-0 z-20 bg-[#0a0f1e]/95 backdrop-blur border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
 
@@ -37,10 +37,10 @@ const Header = () => {
             View Team
           </Link>
           {user?.role === 'admin' && (
-          <Link to="/admin" className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            Admin Dashboard
-          </Link>
+            <Link to="/admin" className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Admin Dashboard
+            </Link>
           )}
           <Link to="/auction" className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
           >
@@ -107,13 +107,13 @@ const Header = () => {
             View Team
           </Link>
           {user?.role === 'admin' && (
-          <Link
-            to="/admin"
-            onClick={() => setMenuOpen(false)}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            Admin Dashboard
-          </Link>
+            <Link
+              to="/admin"
+              onClick={() => setMenuOpen(false)}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Admin Dashboard
+            </Link>
           )}
           <Link
             to="/auction"
