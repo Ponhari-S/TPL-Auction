@@ -251,6 +251,7 @@ router.put("/:id/release", protect, async (req, res) => {
         finally {
             await session.endSession();
         }
+        await BidLog.deleteMany({ player: player._id });
     }
     catch (err) {
         res.status(500).json({ message: err.message });
