@@ -25,6 +25,7 @@ const AuctionPage = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [lastOutcome, setLastOutcome] = useState(null);
   const [nextValidBid, setNextValidBid] = useState(0);
+  const [isFinalCall, setIsFinalCall] = useState(false);
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -201,7 +202,9 @@ const AuctionPage = () => {
             ) : (
               <>
 
-                <div className="bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 lg:p-10 text-center shadow-2xl shadow-black/40">
+                <div className={`rounded-2xl p-8 sm:p-10 text-center shadow-2xl shadow-black/40 border transition-all duration-300 ${
+  isFinalCall ? 'bg-[#0f1729] border-red-500 shadow-red-500/20 animate-pulse' : 'bg-[#0f1729] border-white/10'
+}`}>
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs tracking-widest uppercase font-display mb-6">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
                     Live
@@ -231,7 +234,7 @@ const AuctionPage = () => {
                     </div>
                   ) : (
                     <div className="mt-4">
-                      <CountdownTimer timerEndsAt={timerEndsAt} />
+                      <CountdownTimer timerEndsAt={isPaused ? null : timerEndsAt} onFinalCallChange={setIsFinalCall} />
                     </div>
                   )}
 
@@ -268,7 +271,7 @@ const AuctionPage = () => {
                             <p className="text-red-400 text-sm font-semibold text-center mb-3">
                               You previously released this player — match the bid within 5 seconds!
                             </p>
-                            <CountdownTimer timerEndsAt={rtmWindow.windowEndsAt} />
+                            <CountdownTimer timerEndsAt={rtmWindow.windowEndsAt} disableFinalCallStyle={true} />
                             <button
                               onClick={() => socket.emit('rtm:use', { token })}
                               className="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-display font-semibold text-sm py-2.5 rounded-lg tracking-wide transition-colors"

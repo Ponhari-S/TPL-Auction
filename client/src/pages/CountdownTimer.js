@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-const CountdownTimer = ({ timerEndsAt }) => {
+const CountdownTimer = ({ timerEndsAt, onFinalCallChange, disableFinalCallStyle = false }) => {
     const [secondsLeft, setSecondsLeft] = useState(0);
 
     useEffect(() => {
@@ -9,8 +9,9 @@ const CountdownTimer = ({ timerEndsAt }) => {
             return;
         }
         const calculate = () => {
-            const seconds = new Date(timerEndsAt).getTime() - Date.now();
-            setSecondsLeft(Math.max(0, Math.ceil(seconds / 1000)));
+            const diff = new Date(timerEndsAt).getTime() - Date.now();
+            const seconds = Math.max(0, Math.ceil(diff / 1000));
+            setSecondsLeft(seconds);
         };
         calculate();
         const interval = setInterval(calculate, 250);
@@ -20,10 +21,15 @@ const CountdownTimer = ({ timerEndsAt }) => {
     }, [timerEndsAt]);
 
     const isUrgent = secondsLeft <= 5 && secondsLeft >= 0;
+    const isFinalCall = !disableFinalCallStyle && secondsLeft <= 3 && secondsLeft >= 0;
+
+    useEffect(()=>{
+      onFinalCallChange?.(isFinalCall);
+    },[isFinalCall]);
 
   return (
     <div className="text-center">
-      <p className={`font-display text-5xl tabular-nums tracking-wide ${isUrgent ? 'text-red-500 animate-pulse' : 'text-[#f4b942]'}`}>
+      <p className={`font-display text-5xl tabular-nums tracking-wide ${isFinalCall ? 'text-6xl text-red-500 animate-pulse' : isUrgent ? 'text-5xl text-red-500 animate-pulse' : 'text-5xl text-white'}`}>
         {secondsLeft}s
       </p>
     </div>
