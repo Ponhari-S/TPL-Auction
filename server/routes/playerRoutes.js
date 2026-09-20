@@ -279,6 +279,23 @@ router.get('/:id/rtm-eligible', protect, async (req, res) => {
     catch (err) {
         res.status(500).json({ message: err.message });
     }
-})
+});
+
+router.get('/audit/all', protect, isAdmin, async (req, res) => {
+    try {
+        const players = await Player.find({
+            status: { $in: ['sold', 'unsold', 'unsold-final'] }
+        });
+        const playerIds = players.map((p) => p._id);
+        const allLogs = await BidLog.find({ player: { $in: playerIds } })
+            .populate('team', 'name')
+            .sort({ createdAt: 1 });
+        const grouped = players.map((player) => ({ player, bids: allLogs.filter((log) => log.player.toString() === player._id.toString()) }));
+        res.json(grouped);
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 module.exports = router;

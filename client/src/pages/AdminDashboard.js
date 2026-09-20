@@ -6,14 +6,15 @@ import BuildQueue from '../components/BuildQueue';
 import AuctionControls from '../components/AuctionControls';
 import PendingTrades from '../components/PendingTrades';
 import AddPlayer from '../components/AddPlayer';
+import BidAudit from '../components/BidAudit';
 
 const AdminDashboard = () => {
-    const user = useSelector((state)=>state.auth.user);
-    if(user?.role!=='admin'){
-        return(
-            <Navigate to='/' />
-        )
-    }
+  const user = useSelector((state) => state.auth.user);
+  if (user?.role !== 'admin') {
+    return (
+      <Navigate to='/' />
+    )
+  }
   return (
     <div className="min-h-screen bg-slate-900">
       <Header />
@@ -30,6 +31,7 @@ const AdminDashboard = () => {
             <AuctionControls />
             <BuildQueue />
             <PendingTrades />
+            <BidAudit />
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-6">
