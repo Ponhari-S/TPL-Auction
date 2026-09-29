@@ -76,7 +76,7 @@ const RetainPlayers = () => {
               onClick={() => handleRetain(player._id)}
               className="bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] text-xs font-semibold px-3 py-1.5 rounded"
             >
-              Retain (₹{player.previousPrice.toLocaleString()})
+              Retain (₹{formatPrice(player.previousPrice.toLocaleString())})
             </button>
             </div>
           </div>
