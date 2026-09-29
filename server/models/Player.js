@@ -63,6 +63,10 @@ const playerSchema = new mongoose.Schema({
         ref:'Team',
         default:null
     },
+    previousPrice: {
+        type: Number,
+        default: null
+    },
     rtmUsedBy:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Team'
