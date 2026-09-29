@@ -189,7 +189,17 @@ const Auth = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 lg:mb-1 block">Password</label>
+                <div className="flex items-center justify-between mb-1.5 lg:mb-1">
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block">Password</label>
+                  {!isSignUp && (
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs font-medium text-[#f4b942]/90 hover:text-[#f4b942] transition-colors duration-150 hover:underline focus:outline-none focus:text-[#f4b942]"
+                    >
+                      Forgot password?
+                    </Link>
+                  )}
+                </div>
                 <input
                   type="password"
                   name="password"
@@ -222,11 +232,6 @@ const Auth = () => {
               >
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
-              {!isSignUp && (
-                <p className="text-slate-500 text-xs text-center mt-2">
-                  <Link to="/forgot-password" className="text-blue-400 hover:underline">Forgot password?</Link>
-                </p>
-              )}
             </form>
           </div>
         </div>
