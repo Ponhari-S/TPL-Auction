@@ -302,4 +302,24 @@ router.get('/audit/all', protect, isAdmin, async (req, res) => {
     }
 });
 
+router.get('/retainable/mine',protect,async (req,res)=>{
+    try{
+        if(req.user.role!=='captain'){
+            return res.json([]);
+        }
+        const team = await Team.findOne({'captain': req.user.id});
+        if(!team){
+            return res.json([]);
+        }
+        const players = await Player.find({
+            previouslyReleasedBy: team._id,
+            retainedBy: null
+        });
+        res.json(players);
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+});
+
 module.exports = router;
