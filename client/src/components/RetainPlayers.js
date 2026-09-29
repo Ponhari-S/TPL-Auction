@@ -9,8 +9,8 @@ const RetainPlayers = () => {
 
     const fetchPlayers = async () => {
         try {
-            const res = await api.get("/players");
-            setPlayers(res.data.filter((p) => p.previouslyReleasedBy && !p.retainedBy));
+            const res = await api.get("/players/retainable/mine");
+            setPlayers(res.data);
         }
         catch (err) {
             setError('Failed to load players');
@@ -72,12 +72,12 @@ const RetainPlayers = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => handleRetain(player._id)}
-                className="w-full sm:w-auto bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] font-display font-semibold text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
-              >
-                Retain
-              </button>
+            <button
+              onClick={() => handleRetain(player._id)}
+              className="bg-[#f4b942] hover:bg-[#e5aa2f] text-[#0a0f1e] text-xs font-semibold px-3 py-1.5 rounded"
+            >
+              Retain (₹{player.previousPrice.toLocaleString()})
+            </button>
             </div>
           </div>
         ))}
