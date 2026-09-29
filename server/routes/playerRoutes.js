@@ -187,8 +187,10 @@ router.put('/:id/retain', protect, async (req, res) => {
         if (player.retainedBy) {
             return res.status(400).json({ message: 'This player is already retained by a team' });
         }
-        const state = await AuctionState.findById('singleton');
-        const price = state?.retentionPrice || 33200000;
+        const price = player.previousPrice;
+        if (!price) {
+            return res.status(400).json({ message: 'No previous price found for this player' });
+        }
 
         if (price > team.remainingPurse) {
             return res.status(400).json({ message: 'Insufficient purse for this retention' });
@@ -237,10 +239,12 @@ router.put("/:id/release", protect, async (req, res) => {
                 team.players = team.players.filter((p) => p.toString() !== player._id.toString());
                 await team.save({ session });
 
+                const refundAmount=player.soldPrice || player.retentionPrice || 0;
                 player.status = 'unsold-final';
                 player.soldTo = null;
                 player.soldPrice = null;
                 player.previouslyReleasedBy = teamId;
+                player.previousPrice=refundAmount;
                 player.retainedBy = null;
                 player.retentionPrice = null;
                 await player.save({ session });
