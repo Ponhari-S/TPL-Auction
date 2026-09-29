@@ -33,7 +33,6 @@ const AuctionRules = () => {
             const res = await api.put('/auction/rules', {
                 minIncrement: rules.minIncrement,
                 squadSize: rules.squadSize,
-                retentionPrice:rules.retentionPrice,
                 marqueeBasePrice:rules.marqueeBasePrice,
                 eliteBasePrice:rules.eliteBasePrice,
                 rookieBasePrice:rules.rookieBasePrice
@@ -94,19 +93,6 @@ const AuctionRules = () => {
                   type="number"
                   name="squadSize"
                   value={rules.squadSize}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider mb-1.5 block">
-                Retention Price
-                </label>
-                <input
-                  type="number"
-                  name="retentionPrice"
-                  value={rules.retentionPrice}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-600 outline-none focus:border-[#f4b942] focus:ring-1 focus:ring-[#f4b942] transition-colors text-sm"
                 />
