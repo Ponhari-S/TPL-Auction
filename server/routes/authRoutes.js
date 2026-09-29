@@ -119,7 +119,7 @@ router.post('/forgot-password',authLimit,async (req,res)=>{
         const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
         await sendResetEmail(user.email,resetUrl);
 
-        res.json({ message: 'If that email exists, a reset link has been sent' });
+        res.json({ message: 'A reset link has been sent' });
     }
     catch(err){
         res.status(500).json({ message: err.message });
