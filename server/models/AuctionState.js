@@ -50,8 +50,7 @@ const auctionStateSchema=new mongoose.Schema({
     squadSize:{
         type:Number,
         default: 6
-    },
-    retentionPrice: { type: Number, default: 33200000 }
+    }
 })
 
 module.exports=mongoose.model('AuctionState',auctionStateSchema);
