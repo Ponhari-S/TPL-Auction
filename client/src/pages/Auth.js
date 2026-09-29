@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import api from '../api/axios';
 
 const Auth = () => {
@@ -222,6 +222,11 @@ const Auth = () => {
               >
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
+              {!isSignUp && (
+                <p className="text-slate-500 text-xs text-center mt-2">
+                  <Link to="/forgot-password" className="text-blue-400 hover:underline">Forgot password?</Link>
+                </p>
+              )}
             </form>
           </div>
         </div>

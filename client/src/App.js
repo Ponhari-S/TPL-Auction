@@ -8,6 +8,8 @@ import AuctionPage from "./pages/AuctionPage";
 import { useEffect } from "react";
 import socket from "./socket/socket";
 import SummaryPage from "./pages/SummaryPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from './pages/ResetPassword';
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
@@ -55,6 +57,8 @@ function App() {
             <SummaryPage />
           </ProtectedRoute>
         } />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );

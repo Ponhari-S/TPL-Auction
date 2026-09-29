@@ -27,6 +27,7 @@ const scheduleTimer = (durationMx) => {
 let pausedTimeRemaining = null;
 
 const getIncrementForBid = (currentBid, rules) => {
+  if (!rules || rules.length === 0) return 0;
   const tier = rules.find((r) => currentBid < r.upTo);
   return tier ? tier.increment : rules[rules.length - 1].increment;
 };

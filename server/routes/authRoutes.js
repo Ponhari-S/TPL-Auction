@@ -4,6 +4,9 @@ const User=require('../models/User');
 const jwt=require('jsonwebtoken');
 const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
+const {authLimit} = require('../middleware/rateLimiters');
+const crypto = require('crypto');
+const {sendResetEmail} = require('../utils/mailer');
 
 const router=express.Router();
 
@@ -20,7 +23,7 @@ router.get('/me',protect,async (req,res)=>{
     }
 });
 
-router.post('/signup',async (req,res)=>{
+router.post('/signup',authLimit,async (req,res)=>{
     try{
         const {name, stumpsId, email, password, role} = req.body;
 
@@ -54,7 +57,7 @@ router.post('/signup',async (req,res)=>{
     }
 })
 
-router.post('/login',async (req,res)=>{
+router.post('/login',authLimit,async (req,res)=>{
     try{const {email,password} = req.body;
 
     const user= await User.findOne({email});
@@ -99,6 +102,53 @@ router.get('/unlinked-users', protect, isAdmin, async (req, res) => {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
-  });
+});
+
+router.post('/forgot-password',authLimit,async (req,res)=>{
+    try{
+        const {email} = req.body;
+        const user = await User.findOne({email});
+        if(!user){
+            return res.json({ message: 'If that email exists, a reset link has been sent' });
+        }
+        const token = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = new Date(Date.now()+15*60*1000);
+        await user.save();
+
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
+        await sendResetEmail(user.email,resetUrl);
+
+        res.json({ message: 'If that email exists, a reset link has been sent' });
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.post('/reset-password/:token',async (req,res)=>{
+    try{
+        const {password} =req.body;
+        const user = await User.findOne({
+            resetPasswordToken:req.params.token,
+            resetPasswordExpires: {$gt: Date.now()}
+        });
+
+        if(!user){
+            return res.status(400).json({ message: 'Reset link is invalid or has expired' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password=await bcrypt.hash(password,salt);
+        user.resetPasswordToken=null,
+        user.resetPasswordExpires=null
+        await user.save();
+
+        res.json({ message: 'Password reset successfully' });
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+})
 
 module.exports= router

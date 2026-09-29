@@ -28,7 +28,9 @@ const UserSchema=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref: 'Team',
         default: null
-    }
+    },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null }
 },
 {
     timestamps: true
