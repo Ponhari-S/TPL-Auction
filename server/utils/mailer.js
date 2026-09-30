@@ -1,9 +1,6 @@
 const axios = require('axios');
 
 const sendResetEmail = async (to, resetUrl) => {
-    console.log('========== SENDLIB EMAIL ==========');
-    console.log('Recipient:', to);
-
     try {
         const response = await axios.post(
             'https://sendlib.samueltuoyo.com/api/send',
@@ -36,23 +33,15 @@ const sendResetEmail = async (to, resetUrl) => {
                 }
             }
         );
-
-        console.log('✅ EMAIL SENT THROUGH SENDLIB');
-        console.log('Response:', response.data);
-
         return response.data;
 
     } catch (error) {
-
-        console.error('❌ SENDLIB EMAIL ERROR');
-
         if (error.response) {
             console.error('Status:', error.response.status);
             console.error('Data:', error.response.data);
         } else {
             console.error('Message:', error.message);
         }
-
         throw error;
     }
 };
