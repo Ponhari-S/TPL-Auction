@@ -1,3 +1,5 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -9,8 +11,6 @@ const jwt = require('jsonwebtoken');
 const Team = require('./models/Team');
 const AuctionState = require('./models/AuctionState');
 const { placeBid, useRtm } = require('./auction/engine');
-const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first');
 const authRoutes = require('./routes/authRoutes');
 const protect = require('./middleware/authMiddleware');
 const playerRoutes = require('./routes/playerRoutes');
