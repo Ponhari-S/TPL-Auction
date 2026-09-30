@@ -7,6 +7,7 @@ import AuctionControls from '../components/AuctionControls';
 import PendingTrades from '../components/PendingTrades';
 import AddPlayer from '../components/AddPlayer';
 import BidAudit from '../components/BidAudit';
+import RegisteredPlayers from '../components/RegisteredPlayers';
 
 const AdminDashboard = () => {
   const user = useSelector((state) => state.auth.user);
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
           <div className="lg:col-span-7 flex flex-col gap-6">
             <AuctionRules />
             <AddPlayer />
+            <RegisteredPlayers />
           </div>
         </div>
       </main>

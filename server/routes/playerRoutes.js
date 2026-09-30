@@ -322,4 +322,16 @@ router.get('/retainable/mine',protect,async (req,res)=>{
     }
 });
 
+router.get('/registered/all',protect,isAdmin,async (req,res)=>{
+    try{
+        const players = await Player.find({status:'registered'})
+        .select('name overallRating pool')
+        .sort({overallRating: -1});
+        res.json(players);
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+})
+
 module.exports = router;
