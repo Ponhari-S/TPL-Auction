@@ -162,4 +162,19 @@ router.put('/rules',protect,isAdmin,async (req,res)=>{
     }
 });
 
+router.post('/new-season',protect,isAdmin,async (req,res)=>{
+    try{
+        const state = await getOrCreateAuctionState();
+        if (state.status === 'live' || state.status === 'paused') {
+            return res.status(400).json({ message: 'Cannot start a new season while an auction is in progress' });
+        }
+        state.season+=1;
+        await state.save();
+        res.json({ message: `Season ${state.season} started`, season: state.season });
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+});
+
 module.exports=router;

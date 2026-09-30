@@ -46,7 +46,8 @@ const auctionStateSchema=new mongoose.Schema({
           { upTo: 100000000, increment: 5000000 },
           { upTo: Infinity, increment: 10000000 }
         ]
-      },
+    },
+    season: { type: Number, default: 1 },
     squadSize:{
         type:Number,
         default: 6

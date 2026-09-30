@@ -172,7 +172,8 @@ router.put('/:id/retain', protect, async (req, res) => {
             return res.status(400).json({ message: 'You do not own a team yet' });
         }
 
-        const alreadyRetained = await Player.countDocuments({ retainedBy: team._id });
+        const state = await AuctionState.findById('singleton');
+        const alreadyRetained = await Player.countDocuments({ retainedBy: team._id, retentionSeason: state.season });
         if (alreadyRetained >= 1) {
             return res.status(400).json({ message: 'You have already used your one retention' });
         }
@@ -197,6 +198,7 @@ router.put('/:id/retain', protect, async (req, res) => {
         }
         player.retainedBy = team._id;
         player.retentionPrice = price;
+        player.retentionSeason = state.season;
         player.status = "sold";
         await player.save();
 

@@ -67,9 +67,12 @@ const playerSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    retentionSeason: { type: Number, default: null },
     rtmUsedBy:[{
-        type:mongoose.Schema.Types.ObjectId,
+        team:{type:mongoose.Schema.Types.ObjectId,
         ref:'Team'
+        },
+        season: 'Number'
     }]
 },
 {timestamps: true});

@@ -321,7 +321,9 @@ const useRtm = async (userId) => {
     return { success: false, message: 'You are not eligible to RTM right now' };
   }
 
-  const anyPriorRtmUse = await Player.countDocuments({ rtmUsedBy: team._id });
+  const anyPriorRtmUse = await Player.countDocuments({
+    rtmUsedBy: { $elemMatch: { team: team._id, season: state.season } }
+  });
   if (anyPriorRtmUse > 0) {
     return { success: false, message: 'Your team has already used its one RTM for this auction' };
   }
@@ -346,7 +348,7 @@ const useRtm = async (userId) => {
     { new: true }
   );
 
-  player.rtmUsedBy.push(team._id);
+  player.rtmUsedBy.push({ team: team._id, season: state.season });
   await player.save();
 
   await BidLog.create({

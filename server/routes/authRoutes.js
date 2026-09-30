@@ -23,7 +23,7 @@ router.get('/me',protect,async (req,res)=>{
     }
 });
 
-router.post('/signup',authLimit,async (req,res)=>{
+router.post('/signup',async (req,res)=>{
     try{
         const {name, stumpsId, email, password, role} = req.body;
 
@@ -57,7 +57,7 @@ router.post('/signup',authLimit,async (req,res)=>{
     }
 })
 
-router.post('/login',authLimit,async (req,res)=>{
+router.post('/login',async (req,res)=>{
     try{const {email,password} = req.body;
 
     const user= await User.findOne({email});
