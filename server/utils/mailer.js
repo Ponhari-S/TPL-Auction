@@ -1,45 +1,20 @@
-const nodemailer = require('nodemailer');
-const dns = require('dns');
+const { Resend } = require('resend');
 
-console.log('EMAIL_USER exists:', !!process.env.EMAIL_USER);
-console.log('EMAIL_APP_PASSWORD exists:', !!process.env.EMAIL_APP_PASSWORD);
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD
-    },
-
-    lookup: (hostname, options, callback) => {
-        console.log('DNS lookup:', hostname);
-
-        dns.lookup(hostname, { family: 4 }, (err, address, family) => {
-            console.log('DNS result:', { err, address, family });
-
-            callback(err, address, family);
-        });
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendResetEmail = async (to, resetUrl) => {
-
-    console.log('========== SEND EMAIL ==========');
+    console.log('========== RESEND EMAIL ==========');
     console.log('Recipient:', to);
-    console.log('Reset URL:', resetUrl);
-    console.log('Starting transporter.sendMail()...');
 
     try {
-
-        const info = await transporter.sendMail({
-            from: `TPL Auction <${process.env.EMAIL_USER}>`,
-            to,
+        const { data, error } = await resend.emails.send({
+            from: 'TPL Auction <onboarding@resend.dev>',
+            to: [to],
             subject: 'Reset your TPL Auction password',
 
             html: `
+                <h2>TPL Auction - Password Reset</h2>
+
                 <p>You requested a password reset.</p>
 
                 <p>
@@ -55,19 +30,18 @@ const sendResetEmail = async (to, resetUrl) => {
             `
         });
 
-        console.log('✅ EMAIL SENT');
-        console.log('Message ID:', info.messageId);
-        console.log('Response:', info.response);
+        if (error) {
+            console.error('❌ Resend error:', error);
+            throw new Error(error.message);
+        }
 
-        return info;
+        console.log('✅ Email sent through Resend');
+        console.log('Resend ID:', data.id);
+
+        return data;
 
     } catch (error) {
-
-        console.error('❌ EMAIL SEND FAILED');
-        console.error('Error message:', error.message);
-        console.error('Error code:', error.code);
-        console.error('Full error:', error);
-
+        console.error('❌ Email sending failed:', error);
         throw error;
     }
 };
