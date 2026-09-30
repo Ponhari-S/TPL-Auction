@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendResetEmail = async (to,resetUrl) => {
-    transporter.sendMail({
+    await transporter.sendMail({
         from: `TPL Auction <${process.env.EMAIL_USER}>`,
         to,
         subject: 'Reset your TPL Auction password',
