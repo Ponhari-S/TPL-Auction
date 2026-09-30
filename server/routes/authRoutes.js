@@ -104,25 +104,82 @@ router.get('/unlinked-users', protect, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/forgot-password',authLimit,async (req,res)=>{
-    try{
-        const {email} = req.body;
-        const user = await User.findOne({email});
-        if(!user){
-            return res.json({ message: 'If that email exists, a reset link has been sent' });
+router.post('/forgot-password', authLimit, async (req, res) => {
+
+    console.log('\n========== FORGOT PASSWORD REQUEST ==========');
+
+    try {
+
+        console.log('Request body:', req.body);
+
+        const { email } = req.body;
+
+        console.log('Email received:', email);
+
+        if (!email) {
+            console.log('❌ Email missing');
+
+            return res.status(400).json({
+                message: 'Email is required'
+            });
         }
+
+        console.log('Searching user...');
+
+        const user = await User.findOne({ email });
+
+        console.log('User found:', !!user);
+
+        if (!user) {
+
+            console.log('⚠️ User does not exist');
+
+            return res.json({
+                message: 'If that email exists, a reset link has been sent'
+            });
+        }
+
+        console.log('Generating reset token...');
+
         const token = crypto.randomBytes(32).toString('hex');
+
         user.resetPasswordToken = token;
-        user.resetPasswordExpires = new Date(Date.now()+15*60*1000);
+
+        user.resetPasswordExpires =
+            new Date(Date.now() + 15 * 60 * 1000);
+
         await user.save();
 
-        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
-        await sendResetEmail(user.email,resetUrl);
+        console.log('✅ Reset token saved');
 
-        res.json({ message: 'A reset link has been sent' });
-    }
-    catch(err){
-        res.status(500).json({ message: err.message });
+        const resetUrl =
+            `${process.env.CLIENT_URL}/reset-password/${token}`;
+
+        console.log('CLIENT_URL:', process.env.CLIENT_URL);
+        console.log('Reset URL:', resetUrl);
+
+        console.log('Calling sendResetEmail()...');
+
+        await sendResetEmail(user.email, resetUrl);
+
+        console.log('✅ sendResetEmail completed');
+
+        console.log('Sending success response...');
+
+        return res.json({
+            message: 'A reset link has been sent'
+        });
+
+    } catch (err) {
+
+        console.error('❌ FORGOT PASSWORD ERROR');
+        console.error('Message:', err.message);
+        console.error('Code:', err.code);
+        console.error('Full error:', err);
+
+        return res.status(500).json({
+            message: err.message
+        });
     }
 });
 
