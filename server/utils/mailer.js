@@ -1,47 +1,58 @@
-const { Resend } = require('resend');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const axios = require('axios');
 
 const sendResetEmail = async (to, resetUrl) => {
-    console.log('========== RESEND EMAIL ==========');
+    console.log('========== SENDLIB EMAIL ==========');
     console.log('Recipient:', to);
 
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'TPL Auction <onboarding@resend.dev>',
-            to: [to],
-            subject: 'Reset your TPL Auction password',
+        const response = await axios.post(
+            'https://sendlib.samueltuoyo.com/api/send',
+            {
+                from: process.env.EMAIL_USER,
+                to: to,
+                subject: 'Reset your TPL Auction password',
 
-            html: `
-                <h2>TPL Auction - Password Reset</h2>
+                html: `
+                    <h2>TPL Auction - Password Reset</h2>
 
-                <p>You requested a password reset.</p>
+                    <p>You requested a password reset.</p>
 
-                <p>
-                    <a href="${resetUrl}">
-                        Click here to reset your password
-                    </a>
-                </p>
+                    <p>
+                        <a href="${resetUrl}">
+                            Click here to reset your password
+                        </a>
+                    </p>
 
-                <p>
-                    This link expires in 15 minutes.
-                    If you didn't request this, ignore this email.
-                </p>
-            `
-        });
+                    <p>
+                        This link expires in 15 minutes.
+                        If you didn't request this, ignore this email.
+                    </p>
+                `
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.SENDLIB_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
 
-        if (error) {
-            console.error('❌ Resend error:', error);
-            throw new Error(error.message);
-        }
+        console.log('✅ EMAIL SENT THROUGH SENDLIB');
+        console.log('Response:', response.data);
 
-        console.log('✅ Email sent through Resend');
-        console.log('Resend ID:', data.id);
-
-        return data;
+        return response.data;
 
     } catch (error) {
-        console.error('❌ Email sending failed:', error);
+
+        console.error('❌ SENDLIB EMAIL ERROR');
+
+        if (error.response) {
+            console.error('Status:', error.response.status);
+            console.error('Data:', error.response.data);
+        } else {
+            console.error('Message:', error.message);
+        }
+
         throw error;
     }
 };
