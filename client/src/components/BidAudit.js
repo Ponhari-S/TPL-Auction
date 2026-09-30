@@ -16,24 +16,26 @@ const BidAudit = () => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const soldGroups = groups.filter(({ player }) => player.status === 'sold');
+
   return (
     <div className="w-full bg-[#0f1729] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/40">
       <h2 className="font-display text-2xl text-white tracking-tight mb-1">Bid Audit</h2>
-      <p className="text-slate-500 text-sm mb-6">Review every bid placed on resolved players.</p>
+      <p className="text-slate-500 text-sm mb-6">Review every bid placed on sold players.</p>
 
       {error && (
         <div className="mb-5 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
           {error}
         </div>
       )}
-      {groups.length === 0 && !error && (
+      {soldGroups.length === 0 && !error && (
         <div className="flex items-center gap-3 px-4 py-6 rounded-lg bg-white/5 border border-white/10 border-dashed justify-center">
-          <p className="text-slate-500 text-sm">No resolved players yet.</p>
+          <p className="text-slate-500 text-sm">No sold players yet.</p>
         </div>
       )}
 
       <div className="flex flex-col gap-3">
-        {groups.map(({ player, bids }) => (
+        {soldGroups.map(({ player, bids }) => (
           <div key={player._id} className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
             <button
               type="button"
