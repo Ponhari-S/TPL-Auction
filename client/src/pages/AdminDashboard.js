@@ -8,6 +8,7 @@ import PendingTrades from '../components/PendingTrades';
 import AddPlayer from '../components/AddPlayer';
 import BidAudit from '../components/BidAudit';
 import RegisteredPlayers from '../components/RegisteredPlayers';
+import NewSeason from '../components/NewSeason';
 
 const AdminDashboard = () => {
   const user = useSelector((state) => state.auth.user);
@@ -39,6 +40,7 @@ const AdminDashboard = () => {
             <AuctionRules />
             <AddPlayer />
             <RegisteredPlayers />
+            <NewSeason />
           </div>
         </div>
       </main>

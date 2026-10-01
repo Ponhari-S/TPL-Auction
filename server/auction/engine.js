@@ -181,7 +181,9 @@ const handleTimeout = async () => {
     let isAlreadyWinner = false;
 
     if (eligibleTeamId) {
-      const priorUse = await Player.countDocuments({ rtmUsedBy: eligibleTeamId });
+      const priorUse = await Player.countDocuments({
+        rtmUsedBy: { $elemMatch: { team: eligibleTeamId, season: state.season } }
+    });
       alreadyUsed = priorUse > 0;
       isAlreadyWinner = eligibleTeamId.toString() === state.currentBidder.toString();
     }
