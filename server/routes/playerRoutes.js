@@ -334,6 +334,16 @@ router.get('/registered/all',protect,isAdmin,async (req,res)=>{
     catch(err){
         res.status(500).json({ message: err.message });
     }
-})
+});
+
+router.get('/all/for-season-update',protect,isAdmin,async (req,res)=>{
+    try{
+        const players = await Player.find().select('name role stats overallRating pool basePrice');
+        res.json(players);
+    }
+    catch(err){
+        res.status(500).json({ message: err.message });
+    }
+});
 
 module.exports = router;
