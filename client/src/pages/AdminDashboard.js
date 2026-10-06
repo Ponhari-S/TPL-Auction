@@ -9,6 +9,7 @@ import AddPlayer from '../components/AddPlayer';
 import BidAudit from '../components/BidAudit';
 import RegisteredPlayers from '../components/RegisteredPlayers';
 import NewSeason from '../components/NewSeason';
+import UpdatePlayerStats from '../components/UpdatePlayerStats';
 
 const AdminDashboard = () => {
   const user = useSelector((state) => state.auth.user);
@@ -41,6 +42,7 @@ const AdminDashboard = () => {
             <AddPlayer />
             <RegisteredPlayers />
             <NewSeason />
+            <UpdatePlayerStats />
           </div>
         </div>
       </main>
