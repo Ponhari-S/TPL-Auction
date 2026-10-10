@@ -3,6 +3,9 @@ dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled rejection:', reason);
+});
 const { connectDB } = require('./config/db');
 const { Server } = require('socket.io');
 const http = require('http');
@@ -110,7 +113,8 @@ io.on('connection', async (socket) => {
         socket.emit('pong-test', 'Hello from server');
     });
 
-    socket.on('rtm:use', async ({ token }) => {
+    socket.on('rtm:use', async (payload) => {
+        const { token } = payload || {};
         let decoded;
         try {
             if (!token) throw new Error('No token provided');
@@ -130,7 +134,8 @@ io.on('connection', async (socket) => {
         }
     });
 
-    socket.on('bid:place', async ({ token, amount }) => {
+    socket.on('bid:place', async (payload) => {
+        const { token, amount } = payload || {};
         let decoded;
         try {
             if (!token) throw new Error('No token provided');

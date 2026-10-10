@@ -48,8 +48,9 @@ const pauseTimer = () => {
 };
 
 const finalizeSale = async (state, player) => {
-  const session = await mongoose.startSession();
+  let session;
   try {
+    session = await mongoose.startSession();
     await session.withTransaction(async () => {
       const team = await Team.findById(state.currentBidder).session(session);
       player.status = 'sold';
@@ -74,10 +75,14 @@ const finalizeSale = async (state, player) => {
     console.error('Sale transaction failed:', transactionErr.message);
   }
   finally {
-    await session.endSession();
+    if (session) await session.endSession();
   }
   await delay(OUTCOME_DISPLAY_MS);
-  await startNextPlayer();
+  try {
+    await startNextPlayer();
+  } catch (err) {
+    console.error('Failed to advance after sale:', err);
+  }
 };
 
 const resumeTimer = async () => {
@@ -136,19 +141,27 @@ const startNextPlayer = async () => {
   try {
     const state = await AuctionState.findById('singleton');
 
-    if (!state.playerQueue || state.playerQueue.length === 0) {
+    let player =null;
+    let nextPlayerId = null;
+
+    while(state.playerQueue.length>0 && !player){
+      nextPlayerId = state.playerQueue[0];
+      state.playerQueue = state.playerQueue.slice(1);
+      const candidate = await Palyer.findById(nextPlayerId);
+      if (candidate && ['registered', 'unsold'].includes(candidate.status)) {
+        player = candidate;
+      } else {
+        console.log(`Skipping unavailable queued player ${nextPlayerId}`);
+      }    
+    }
+    
+    if (!player) {
       state.status = 'ended';
       state.currentPlayer = null;
       await state.save();
       ioInstance.emit('auction:ended');
       return;
     }
-
-    const nextPlayerId = state.playerQueue[0];
-    state.playerQueue = state.playerQueue.slice(1);
-
-    const player = await Player.findById(nextPlayerId);
-
     state.currentPlayer = nextPlayerId;
     state.currentBid = player.basePrice;
     state.currentBidder = null;
@@ -172,9 +185,13 @@ const startNextPlayer = async () => {
   }
 };
 
-const handleTimeout = async () => {
+const resolveTimeout = async () => {
   const state = await AuctionState.findById('singleton');
   const player = await Player.findById(state.currentPlayer);
+  if (!player || player.status === 'sold') {
+    await startNextPlayer();
+    return;
+  }
   if (state.currentBidder) {
     const eligibleTeamId = player.previouslyReleasedBy;
     let alreadyUsed = true;
@@ -241,6 +258,14 @@ const handleTimeout = async () => {
   }
   await delay(OUTCOME_DISPLAY_MS);
   await startNextPlayer();
+};
+
+const handleTimeout = async () => {
+  try {
+    await resolveTimeout();
+  } catch (err) {
+    console.error('handleTimeout failed:', err);
+  }
 };
 
 const placeBid = async (userId, amount) => {
