@@ -82,7 +82,7 @@ router.put('/:id',protect,isAdmin,async (req,res)=>{
 router.put('/:id/select',protect,async (req,res)=>{
     try{
         if(req.user.role!=='captain'){
-            res.status(403).json({message:"Only captains can select a team"})
+            return res.status(403).json({message:"Only captains can select a team"})
         }
         const existingTeam=await Team.findOne({captain:req.user.id});
         if(existingTeam){
@@ -175,7 +175,7 @@ router.put('/:id/give-captaincy',protect,async (req,res)=>{
         if(!team){
             return res.status(404).json({ message: 'Team not found' });
         }
-        if(team.captain.toString()!==req.user.id){
+        if(!team.captain || team.captain.toString()!==req.user.id){
             return res.status(403).json({ message: 'Only the current captain can transfer captaincy' });
         }
         const isOnTeam = team.players.some((p)=>p.toString()===playerId);
