@@ -60,10 +60,12 @@ router.post('/build-queue',protect,isAdmin,async (req,res)=>{
     }
 });
 
-router.put('/start',async (req,res)=>{
+router.put('/start',protect,isAdmin,async (req,res)=>{
     try{
         let state = await getOrCreateAuctionState();
-
+        if(state.status==='live' || state.status==='paused'){
+            return res.status(400).json({ message: 'Auction is already in progress' });
+        }
         if(!state.playerQueue || state.playerQueue.length===0){
             return res.status(400).json({ message: 'Build the queue before starting the auction' });
         }
@@ -94,7 +96,7 @@ router.get('/next-bid', protect, async (req, res) => {
   }
 });
 
-router.put('/pause',async (req,res)=>{
+router.put('/pause',protect,isAdmin,async (req,res)=>{
     try{
         let state=await getOrCreateAuctionState();
         if(state.status!=='live'){
@@ -111,7 +113,7 @@ router.put('/pause',async (req,res)=>{
     }
 });
 
-router.put('/resume',async (req,res)=>{
+router.put('/resume',protect,isAdmin,async (req,res)=>{
     try{
         let state=await getOrCreateAuctionState();
         if(state.status!=='paused'){
@@ -119,7 +121,7 @@ router.put('/resume',async (req,res)=>{
         }
         state.status='live';
         await state.save();
-        resumeTimer();
+        await resumeTimer();
         res.json(state);
     }
     catch(err){
@@ -127,7 +129,7 @@ router.put('/resume',async (req,res)=>{
     }
 });
 
-router.get('/status',async(req,res)=>{
+router.get('/status',protect,async(req,res)=>{
     try{
         let state=await getOrCreateAuctionState();
         res.json({status:state.status});

@@ -3,7 +3,7 @@ const jwt=require('jsonwebtoken');
 const protect = (req,res,next)=>{
     const authHeader = req.headers.authorization;
     if(!authHeader || !authHeader.startsWith('Bearer ')){
-        res.status(401).json({message:"You are not authorized"});
+        return res.status(401).json({message:"You are not authorized"});
     }
 
     const token=authHeader.split(" ")[1];
