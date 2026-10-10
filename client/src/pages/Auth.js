@@ -34,7 +34,6 @@ const Auth = () => {
       const res = await api.post(endpoint, payload);
       
       if(isSignUp){
-        console.log("SignedUp:",res.data);
         setIsSignUp(false);
       }
       else{

@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const {sendResetEmail} = require('../utils/mailer');
 
 const router=express.Router();
+const SIGNUP_ROLES = ['player','captain'];
 
 router.get('/me',protect,async (req,res)=>{
     try{
@@ -19,13 +20,17 @@ router.get('/me',protect,async (req,res)=>{
         res.json(user);
     }
     catch(err){
-        res.status(500).json({messsge:err.message});
+        res.status(500).json({message:err.message});
     }
 });
 
 router.post('/signup',async (req,res)=>{
     try{
         const {name, stumpsId, email, password, role} = req.body;
+
+        if(!name || !stumpsId || !email || !password){
+            return res.status(400).json({message:"All fields are required"});
+        }
 
         const existingUser = await User.findOne({$or: [{email}, {stumpsId}]});
         if(existingUser){
@@ -35,12 +40,14 @@ router.post('/signup',async (req,res)=>{
         const salt=await bcrypt.genSalt(10);
         const hashedPassword=await bcrypt.hash(password,salt);
 
+        const safeRole = SIGNUP_ROLES.includes(role) ? role : 'player';
+        
         const user= await User.create({
             name,
             stumpsId,
             email,
             password: hashedPassword,
-            role
+            role: safeRole
         });
 
         res.status(200).json({
@@ -48,12 +55,11 @@ router.post('/signup',async (req,res)=>{
             name:user.name,
             stumpsId:user.stumpsId,
             email:user.email,
-            password:user.password,
             role:user.role
         });
     }
     catch(err){
-        res.status(500).json({messsge:err.message});
+        res.status(500).json({message:err.message});
     }
 })
 
