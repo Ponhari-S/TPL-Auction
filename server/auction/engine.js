@@ -323,14 +323,14 @@ const useRtm = async (userId) => {
     return { success: false, message: 'You are not eligible to RTM right now' };
   }
 
+  const state = await AuctionState.findById('singleton');
   const anyPriorRtmUse = await Player.countDocuments({
     rtmUsedBy: { $elemMatch: { team: team._id, season: state.season } }
   });
   if (anyPriorRtmUse > 0) {
-    return { success: false, message: 'Your team has already used its one RTM for this auction' };
+    return { success: false, message: 'Your team has already used its RTM this season' };
   }
 
-  const state = await AuctionState.findById('singleton');
   const player = await Player.findById(state.currentPlayer);
 
   if (team.players.length >= state.squadSize) {
@@ -340,6 +340,9 @@ const useRtm = async (userId) => {
     return { success: false, message: 'Insufficient purse to match this bid' };
   }
 
+  if (awaitingRtmTeamId !== team._id.toString()) {
+    return { success: false, message: 'The RTM window has closed' };
+  }
   clearTimeout(rtmTimer);
   rtmTimer = null;
   awaitingRtmTeamId = null;
@@ -349,16 +352,23 @@ const useRtm = async (userId) => {
     { currentBidder: team._id },
     { new: true }
   );
+  if (!updatedState) {
+    console.error('RTM could not be applied: current player changed');
+    return { success: false, message: 'RTM could not be applied' };
+  }
 
   player.rtmUsedBy.push({ team: team._id, season: state.season });
   await player.save();
 
-  await BidLog.create({
+  try{await BidLog.create({
     player: player._id,
     team: team._id,
     amount: state.currentBid,
     type: 'rtm'
-  });
+  });}
+  catch(err){
+    console.error('RTM bid log failed:', logErr.message);
+  }
 
   ioInstance.emit('auction:rtmUsed', {
     currentBid: updatedState.currentBid,
