@@ -48,6 +48,7 @@ const auctionStateSchema=new mongoose.Schema({
         ]
     },
     season: { type: Number, default: 1 },
+    biddingClosed: { type: Boolean, default: false },
     squadSize:{
         type:Number,
         default: 6

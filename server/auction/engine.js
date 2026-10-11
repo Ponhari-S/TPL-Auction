@@ -164,6 +164,7 @@ const startNextPlayer = async () => {
     }
     state.currentPlayer = nextPlayerId;
     state.currentBid = player.basePrice;
+    state.biddingClosed = false;
     state.currentBidder = null;
     state.timerEndsAt = new Date(Date.now() + 30000);
 
@@ -186,7 +187,11 @@ const startNextPlayer = async () => {
 };
 
 const resolveTimeout = async () => {
-  const state = await AuctionState.findById('singleton');
+  const state = await AuctionState.findOneAndUpdate(
+    { _id: 'singleton' },
+    { biddingClosed: true },
+    { new: true }
+  );
   const player = await Player.findById(state.currentPlayer);
   if (!player || player.status === 'sold') {
     await startNextPlayer();
@@ -269,12 +274,18 @@ const handleTimeout = async () => {
 };
 
 const placeBid = async (userId, amount) => {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { success: false, message: 'Invalid bid amount' };
+  }
   const state = await AuctionState.findById('singleton');
   if (state.status !== 'live') {
     return { success: false, message: 'Auction is not live' };
   }
   if (!state.currentPlayer) {
     return { success: false, message: 'No player currently up for auction' };
+  }
+  if (state.biddingClosed) {
+    return { success: false, message: 'Bidding is closed for this player' };
   }
   const team = await Team.findOne({ captain: userId });
   if (!team) {
@@ -301,7 +312,8 @@ const placeBid = async (userId, amount) => {
     _id: "singleton",
     currentBid: state.currentBid,
     currentPlayer: state.currentPlayer,
-    currentBidder: { $ne: team._id }
+    currentBidder: { $ne: team._id },
+    biddingClosed: { $ne: true }
   },
     {
       currentBid: amount,
@@ -316,12 +328,16 @@ const placeBid = async (userId, amount) => {
     return { success: false, message: 'Bid rejected — someone else bid first, try again' };
   }
 
-  await BidLog.create({
-    player: state.currentPlayer,
-    team: team._id,
-    amount,
-    type: 'bid'
-  });
+  try {
+    await BidLog.create({
+      player: state.currentPlayer,
+      team: team._id,
+      amount,
+      type: 'bid'
+    });
+  } catch (logErr) {
+    console.error('Bid log failed:', logErr.message);
+  }
 
   scheduleTimer(15000);
 
