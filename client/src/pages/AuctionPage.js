@@ -108,6 +108,11 @@ const AuctionPage = () => {
       setBidError(data.message);
     });
 
+    socket.on('auction:saleFailed', (data) => {
+      setLastOutcome({ type: 'failed', playerName: data.playerName });
+      setRtmWindow(null);
+    });
+
     socket.on('auction:playerSold', (data) => {
       setTeams((prevTeams) =>
         prevTeams
@@ -183,6 +188,7 @@ const AuctionPage = () => {
       socket.off('auction:resumed');
       socket.off('auction:playerUnsold');
       socket.off('auction:playerUnsoldFinal');
+      socket.off('auction:saleFailed');
     };
   }, []);
 

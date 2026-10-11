@@ -27,6 +27,7 @@ const OutcomeModal = ({ outcome, onClose, duration = 3500 }) => {
   const isSold = outcome.type === 'sold';
   const isUnsold = outcome.type === 'unsold';
   const isUnsoldFinal = outcome.type === 'unsold-final';
+  const isFailed = outcome.type === 'failed';
   const role = outcome.role || outcome.player?.role;
 
   return (
@@ -34,7 +35,7 @@ const OutcomeModal = ({ outcome, onClose, duration = 3500 }) => {
       <div
         className={`w-full max-w-[340px] sm:max-w-[380px] rounded-2xl p-5 sm:p-6 text-center border shadow-2xl transition-all duration-300 ${isSold
           ? 'bg-gradient-to-b from-[#0f1f2e] to-[#0f1729] border-[#22c55e]/40 shadow-[0_0_50px_-10px_rgba(34,197,94,0.3)] ring-1 ring-[#22c55e]/20'
-          : isUnsoldFinal
+          : (isUnsoldFinal || isFailed)
             ? 'bg-gradient-to-b from-[#241219] to-[#0f1729] border-red-500/30 shadow-[0_0_50px_-10px_rgba(239,68,68,0.25)] ring-1 ring-red-500/20'
             : 'bg-gradient-to-b from-[#1c1b26] to-[#0f1729] border-[#f4b942]/30 shadow-[0_0_50px_-10px_rgba(244,185,66,0.2)] ring-1 ring-[#f4b942]/20'
           }`}
@@ -61,6 +62,13 @@ const OutcomeModal = ({ outcome, onClose, duration = 3500 }) => {
             <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-display tracking-widest uppercase bg-red-500/15 border border-red-500/30 text-red-400">
               <span className="w-2 h-2 rounded-full bg-red-500" />
               Unsold • Removed
+            </span>
+          )}
+
+          {isFailed && (
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-display tracking-widest uppercase bg-red-500/15 border border-red-500/30 text-red-400">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              Sale Failed
             </span>
           )}
         </div>
@@ -114,6 +122,13 @@ const OutcomeModal = ({ outcome, onClose, duration = 3500 }) => {
             </div>
             <p className="text-white font-display text-base tracking-wide">Removed from Auction</p>
             <p className="text-slate-400 text-xs mt-1">No bids on second pass • Out of auction</p>
+          </div>
+        )}
+
+        {isFailed && (
+          <div className="mt-4 bg-red-500/5 border border-red-500/20 rounded-xl p-4 text-center">
+            <p className="text-white font-display text-base tracking-wide">Technical issue</p>
+            <p className="text-slate-400 text-xs mt-1">No money moved • Player returns to the queue</p>
           </div>
         )}
 

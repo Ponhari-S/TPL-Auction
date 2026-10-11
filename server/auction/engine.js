@@ -24,8 +24,6 @@ const scheduleTimer = (durationMx) => {
   currentTimer = setTimeout(handleTimeout, durationMx);
 }
 
-let pausedTimeRemaining = null;
-
 const getIncrementForBid = (currentBid, rules) => {
   if (!rules || rules.length === 0) return 0;
   const tier = rules.find((r) => currentBid < r.upTo);
@@ -47,8 +45,22 @@ const pauseTimer = () => {
   }
 };
 
+const requeueFailedSale = async (player) => {
+  try {
+    await AuctionState.updateOne(
+      { _id: 'singleton' },
+      { $push: { playerQueue: player._id } }
+    );
+    ioInstance.emit('auction:saleFailed', { playerName: player.name });
+    console.log(`Sale failed for ${player.name}, requeued`);
+  } catch (err) {
+    console.error('Could not requeue after failed sale:', err.message);
+  }
+};
+
 const finalizeSale = async (state, player) => {
   let session;
+  let committed = false;
   try {
     session = await mongoose.startSession();
     await session.withTransaction(async () => {
@@ -61,6 +73,7 @@ const finalizeSale = async (state, player) => {
       team.players.push(player._id);
       await team.save({ session });
     });
+    committed=true;
 
     const team = await Team.findById(state.currentBidder);
     ioInstance.emit('auction:playerSold', {
@@ -73,6 +86,9 @@ const finalizeSale = async (state, player) => {
   }
   catch (transactionErr) {
     console.error('Sale transaction failed:', transactionErr.message);
+    if (!committed) {
+      await requeueFailedSale(player);
+    }
   }
   finally {
     if (session) await session.endSession();
