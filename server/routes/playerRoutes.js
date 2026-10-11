@@ -185,8 +185,14 @@ router.put('/:id/retain', protect, async (req, res) => {
         if (!player.previouslyReleasedBy || player.previouslyReleasedBy.toString() !== team._id.toString()) {
             return res.status(400).json({ message: 'You can only retain a player you previously released' });
         }
-        if (player.retainedBy) {
-            return res.status(400).json({ message: 'This player is already retained by a team' });
+        if (player.retainedBy || player.soldTo || !['registered', 'unsold', 'unsold-final'].includes(player.status)) {
+            return res.status(400).json({ message: 'This player is already on a squad' });
+        }
+        if (['live', 'paused'].includes(state.status) && state.currentPlayer && state.currentPlayer.toString() === player._id.toString()) {
+            return res.status(400).json({ message: 'This player is currently up for auction' });
+        }
+        if (team.players.length >= state.squadSize) {
+            return res.status(400).json({ message: 'Your squad is already full' });
         }
         const price = player.previousPrice;
         if (!price) {
@@ -200,6 +206,8 @@ router.put('/:id/retain', protect, async (req, res) => {
         player.retentionPrice = price;
         player.retentionSeason = state.season;
         player.status = "sold";
+        player.previouslyReleasedBy = null;
+        player.previousPrice = null;
         await player.save();
 
         team.remainingPurse -= price;
@@ -315,7 +323,8 @@ router.get('/retainable/mine',protect,async (req,res)=>{
         }
         const players = await Player.find({
             previouslyReleasedBy: team._id,
-            retainedBy: null
+            retainedBy: null,
+            status: { $ne: 'sold' }
         });
         res.json(players);
     }

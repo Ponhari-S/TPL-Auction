@@ -68,6 +68,8 @@ const finalizeSale = async (state, player) => {
       player.status = 'sold';
       player.soldTo = team._id;
       player.soldPrice = state.currentBid;
+      player.previouslyReleasedBy = null;
+      player.previousPrice = null;
       await player.save({ session });
       team.remainingPurse -= state.currentBid;
       team.players.push(player._id);
