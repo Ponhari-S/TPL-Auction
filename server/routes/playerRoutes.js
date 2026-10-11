@@ -151,6 +151,16 @@ router.put('/me/register', protect, async (req, res) => {
             return res.status(404).json({ message: "No player profile found for this user" });
         }
 
+        const state = await AuctionState.findById('singleton');
+        const auctionRunning = ['live', 'paused'].includes(state?.status);
+
+        if (player.soldTo || player.retainedBy || player.status === 'sold') {
+            return res.status(400).json({ message: 'You are already on a squad' });
+        }
+        if (player.status === 'unsold' && auctionRunning) {
+            return res.status(400).json({ message: 'You are still in the current auction' });
+        }
+
         player.status = 'registered';
         await player.save();
 
