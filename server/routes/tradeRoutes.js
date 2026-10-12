@@ -4,9 +4,39 @@ const Trade = require('../models/Trade');
 const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const mongoose = require('mongoose');
+const AuctionState = require('../models/AuctionState');
 const Player = require('../models/Player');
 
 const router = express.Router();
+
+const validateTrade = (fromTeam, toTeam, offeredPlayer, requestedPlayer, offeredPurse, state) => {
+    if (!requestedPlayer) {
+        throw new Error('Requested player no longer exists');
+    }
+    if (offeredPurse > fromTeam.remainingPurse) {
+        throw new Error('Offering team does not have enough purse');
+    }
+    if (!offeredPlayer && fromTeam.players.length >= state.squadSize) {
+        throw new Error('Offering team squad is already full');
+    }
+    for (const p of [offeredPlayer, requestedPlayer].filter(Boolean)) {
+        if (p.user && [fromTeam.captain, toTeam.captain].some((c) => c && c.toString() === p.user.toString())) {
+            throw new Error('A captain cannot be traded');
+        }
+        if (p.retainedBy && p.retentionSeason === state.season) {
+            throw new Error('Players retained this season cannot be traded');
+        }
+    }
+};
+
+const clearRetention = (player) => {
+    if (player.retainedBy) {
+        player.soldPrice = player.retentionPrice;
+        player.retainedBy = null;
+        player.retentionPrice = null;
+        player.retentionSeason = null;
+    }
+};
 
 router.post('/',protect,async (req,res)=>{
     try{
@@ -43,6 +73,15 @@ router.post('/',protect,async (req,res)=>{
         const theyOwnRequested= toTeam.players.some((p)=>p.toString()===requestedPlayerId);
         if(!theyOwnRequested){
             return res.status(400).json({ message: 'Target team does not own the requested player' });
+        }
+
+        const state = await AuctionState.findById('singleton');
+        const offeredPlayer = offeredPlayerId ? await Player.findById(offeredPlayerId) : null;
+        const requestedPlayer = await Player.findById(requestedPlayerId);
+        try {
+            validateTrade(fromTeam, toTeam, offeredPlayer, requestedPlayer, Number(offeredPurse) || 0, state);
+        } catch (validationErr) {
+            return res.status(400).json({ message: validationErr.message });
         }
 
         const trade = await Trade.create({
@@ -154,13 +193,10 @@ router.put('/:id/approve',protect,isAdmin,async (req,res)=>{
             await session.withTransaction(async ()=>{
                 const fromTeam = await Team.findById(trade.fromTeam).session(session);
                 const toTeam = await Team.findById(trade.toTeam).session(session);
-                if(trade.offerPrice>fromTeam.remainingPurse){
-                    throw new Error('Offering team no longer has sufficient purse');
-                }
-                if(trade.offeredPurse > 0 && toTeam.remainingPurse + trade.offeredPurse < 0){
-                    throw new Error('Purse calculation error');
-                }
+                const state = await AuctionState.findById('singleton').session(session);
                 const requestedPlayer = await Player.findById(trade.requestedPlayer).session(session);
+                const offeredPlayer = trade.offeredPlayer ? await Player.findById(trade.offeredPlayer).session(session) : null;
+                validateTrade(fromTeam, toTeam, offeredPlayer, requestedPlayer, trade.offeredPurse, state);
                 const stillOwnsRequested = toTeam.players.some((p)=>p.toString()===requestedPlayer._id.toString());
                 if(!stillOwnsRequested){
                     throw new Error('Target team no longer owns the requested player');
@@ -168,9 +204,9 @@ router.put('/:id/approve',protect,isAdmin,async (req,res)=>{
                 toTeam.players=toTeam.players.filter((p)=>p.toString()!==requestedPlayer._id.toString());
                 fromTeam.players.push(requestedPlayer._id);
                 requestedPlayer.soldTo=fromTeam._id;
+                clearRetention(requestedPlayer);
 
                 if(trade.offeredPlayer){
-                    const offeredPlayer = await Player.findById(trade.offeredPlayer).session(session);
                     const stillOwnsOffered = fromTeam.players.some((p)=>p.toString()===offeredPlayer._id.toString());
                     if(!stillOwnsOffered){
                         throw new Error('Offering team no longer owns the offered player');
@@ -178,6 +214,7 @@ router.put('/:id/approve',protect,isAdmin,async (req,res)=>{
                     fromTeam.players=fromTeam.players.filter((p)=>p.toString()!==offeredPlayer._id.toString());
                     toTeam.players.push(offeredPlayer._id);
                     offeredPlayer.soldTo=toTeam._id;
+                    clearRetention(offeredPlayer);
                     await offeredPlayer.save({session});
                 }
 
