@@ -166,7 +166,7 @@ const startNextPlayer = async () => {
       nextPlayerId = state.playerQueue[0];
       state.playerQueue = state.playerQueue.slice(1);
       const candidate = await Palyer.findById(nextPlayerId);
-      if (candidate && ['registered', 'unsold'].includes(candidate.status)) {
+      if (candidate && candidate.basePrice && ['registered', 'unsold'].includes(candidate.status)) {
         player = candidate;
       } else {
         console.log(`Skipping unavailable queued player ${nextPlayerId}`);

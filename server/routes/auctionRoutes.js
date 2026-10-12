@@ -41,7 +41,9 @@ router.post('/build-queue',protect,isAdmin,async (req,res)=>{
             return res.status(400).json({ message: 'Cannot rebuild queue while auction is in progress' });
         }
         const pools = { marquee: [], elite: [], rookie: [], unrated: [] };
-        const eligiblePlayer = await Player.find({status:"registered"});
+        const registered = await Player.find({status:"registered"});
+        const eligiblePlayer = registered.filter((p) => p.basePrice);
+        const skipped = registered.filter((p) => !p.basePrice).map((p) => p.name);
         eligiblePlayer.forEach((player) => {
             const key = pools[player.pool] ? player.pool : 'unrated';
             pools[key].push(player);
@@ -54,7 +56,8 @@ router.post('/build-queue',protect,isAdmin,async (req,res)=>{
         ]
         state.playerQueue=finalQueue.map((p)=>p._id);
         await state.save();
-        res.json({ message: `Queue built with ${finalQueue.length} players`, queue: state.playerQueue });
+        const warning = skipped.length ? ` Skipped (no base price, re-rate them): ${skipped.join(', ')}` : '';
+        res.json({ message: `Queue built with ${finalQueue.length} players.${warning}`, queue: state.playerQueue, skipped });
     }catch(err){
         res.status(500).json({ message: err.message });
     }

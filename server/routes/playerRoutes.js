@@ -10,23 +10,28 @@ const BidLog = require('../models/BidLog');
 
 const router = express.Router();
 
+const applyRating = async (player) => {
+    const rating = await getRating(player);
+    const pool = ratingToPool(rating);
+    const state = await AuctionState.findById('singleton');
+    const poolPrices = {
+        marquee: state?.marqueeBasePrice || 4800000,
+        elite: state?.eliteBasePrice || 2400000,
+        rookie: state?.rookieBasePrice || 1200000
+    };
+    player.overallRating = rating;
+    player.pool = pool;
+    player.basePrice = poolPrices[pool];
+    await player.save();
+    return player;
+};
+
 router.post('/', protect, isAdmin, async (req, res) => {
     try {
         const { userId, ...playerData } = req.body;
         const player = await Player.create({ ...playerData, user: userId || null });
         try {
-            const rating = await getRating(player);
-            const state = await AuctionState.findById('singleton');
-            const pool = ratingToPool(rating);
-            const poolPrices = {
-                marquee: state?.marqueeBasePrice || 4800000,
-                elite: state?.eliteBasePrice || 2400000,
-                rookie: state?.rookieBasePrice || 1200000
-            };
-            player.overallRating = rating;
-            player.pool = pool;
-            player.basePrice = poolPrices[pool];
-            await player.save();
+            await applyRating(player);
         }
         catch (ratingErr) {
             console.log(`Rating failed for ${player.name}:`, ratingErr.message);
@@ -96,10 +101,7 @@ router.put('/:id', protect, isAdmin, async (req, res) => {
             return res.status(404).json({ message: "Player not found" });
         }
         try {
-            const rating = await getRating(player);
-            player.overallRating = rating;
-            player.pool = ratingToPool(rating);
-            await player.save();
+            await applyRating(player);
         }
         catch (ratingErr) {
             console.log(`Rating update failed for ${player.name}:`, ratingErr.message);
@@ -117,11 +119,7 @@ router.put('/:id/rate', protect, isAdmin, async (req, res) => {
         if (!player) {
             return res.status(404).json({ message: "Player not found" });
         }
-        const rating = await getRating(player);
-        player.overallRating = rating;
-        player.pool = ratingToPool(rating);
-        await player.save();
-        res.json(player);
+        await applyRating(player);
     }
     catch (err) {
         res.status(500).json({ message: err.message });
