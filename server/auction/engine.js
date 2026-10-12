@@ -165,7 +165,7 @@ const startNextPlayer = async () => {
     while(state.playerQueue.length>0 && !player){
       nextPlayerId = state.playerQueue[0];
       state.playerQueue = state.playerQueue.slice(1);
-      const candidate = await Palyer.findById(nextPlayerId);
+      const candidate = await Player.findById(nextPlayerId);
       if (candidate && candidate.basePrice && ['registered', 'unsold'].includes(candidate.status)) {
         player = candidate;
       } else {
