@@ -13,7 +13,7 @@ const SIGNUP_ROLES = ['player','captain'];
 
 router.get('/me',protect,async (req,res)=>{
     try{
-        const user= await User.findById(req.user.id).select('-password');
+        const user= await User.findById(req.user.id).select('-password -resetPasswordToken -resetPasswordExpires');
         if(!user){
             return res.status(404).json({message:'User not found'});
         }
@@ -88,7 +88,8 @@ router.post('/login',async (req,res)=>{
             _id:user._id,
             name: user.name,
             email: user.email,
-            role: user.role
+            role: user.role,
+            team: user.team
         }
     })}
     catch(err){

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector,useDispatch } from 'react-redux';
 import Header from '../components/Header';
 import ProposeTrade from '../components/ProposeTrade';
 import IncomingTrades from '../components/IncomingTrades';
 import api from '../api/axios';
 import { formatPrice } from '../utils/formatCurrency';
+import { updateUser } from '../features/auth/authSlice';
 
 function ViewTeam() {
   const [showGiveCaptaincy, setShowGiveCaptaincy] = useState(false);
@@ -12,6 +13,11 @@ function ViewTeam() {
   const [confirmingRelease, setConfirmingRelease] = useState(null);
   const [releaseMessage, setReleaseMessage] = useState("");
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const refreshUser = async () => {
+    const res = await api.get('/auth/me');
+    dispatch(updateUser(res.data));
+  };
   const [team, setTeam] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -31,6 +37,7 @@ function ViewTeam() {
           myTeam = teamsRes.data.find((t) => t._id === teamId);
         }
         if (!myTeam) {
+          setTeam(null);
           if (user?.role === 'admin') {
             setError("Admins don't have a team.");
           } else if (user?.role === 'captain') {
@@ -39,6 +46,7 @@ function ViewTeam() {
             setError("You haven't been sold to a team yet.");
           }
         } else {
+          setError('');
           setTeam(myTeam);
         }
       } catch (err) {
@@ -56,7 +64,7 @@ function ViewTeam() {
     setTransferError("");
     try {
       await api.put(`/teams/${team._id}/give-captaincy`, { playerId });
-      window.location.reload();
+      await refreshUser();
     }
     catch (err) {
       setTransferError(err.response?.data?.message || 'Failed to transfer captaincy');
@@ -68,7 +76,7 @@ function ViewTeam() {
       const res = await api.put(`/players/${playerId}/release`);
       setReleaseMessage(res.data.message);
       setConfirmingRelease(null);
-      window.location.reload();
+      await refreshUser();
     }
     catch (err) {
       setReleaseMessage(err.response?.data?.message || 'Failed to release player');
