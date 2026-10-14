@@ -4,7 +4,7 @@ const User=require('../models/User');
 const jwt=require('jsonwebtoken');
 const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
-const {authLimit} = require('../middleware/rateLimiters');
+const {loginLimit,signupLimit,forgotEmailLimit,forgotIpLimit} = require('../middleware/rateLimiters');
 const crypto = require('crypto');
 const {sendResetEmail} = require('../utils/mailer');
 
@@ -24,7 +24,7 @@ router.get('/me',protect,async (req,res)=>{
     }
 });
 
-router.post('/signup',async (req,res)=>{
+router.post('/signup',signupLimit,async (req,res)=>{
     try{
         const {name, stumpsId, email, password, role} = req.body;
 
@@ -63,7 +63,7 @@ router.post('/signup',async (req,res)=>{
     }
 })
 
-router.post('/login',async (req,res)=>{
+router.post('/login',loginLimit,async (req,res)=>{
     try{const {email,password} = req.body;
 
     const user= await User.findOne({email});
@@ -111,7 +111,7 @@ router.get('/unlinked-users', protect, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/forgot-password', authLimit, async (req, res) => {
+router.post('/forgot-password',forgotEmailLimit,forgotIpLimit, async (req, res) => {
     const genericMessage = 'If that email is registered, a reset link has been sent';
     try {
         const { email } = req.body;
