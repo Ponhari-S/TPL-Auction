@@ -66,7 +66,7 @@ initEngine(io);
 const sendSyncIfLive = async (socket) => {
     try {
         const state = await AuctionState.findById('singleton');
-        if (state && state.status === 'live' && state.currentPlayer) {
+        if (state && ['live', 'paused'].includes(state.status) && state.currentPlayer) {
             const player = await Player.findById(state.currentPlayer);
             const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
             socket.emit('auction:sync', {

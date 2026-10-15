@@ -38,9 +38,9 @@ const AuctionPage = () => {
         setTeams(teamRes.data);
 
         if (user?.role === 'captain') {
-          const team = teamRes.data.find((t) => t.captain._id === user._id || t.captain === user._id);
+          const team = teamRes.data.find((t) => t.captain?._id === user._id || t.captain === user._id);
           setMyteam(team || null);
-          setMyTeamId(team._id || null);
+          setMyTeamId(team?._id || null);
         }
         if (user?.role === 'player') {
           const profileRes = await api.get('/players/me/profile');
@@ -56,7 +56,7 @@ const AuctionPage = () => {
 
   useEffect(() => {
     if (!player) return;
-    api.get('/auction/next-bid').then((res) => setNextValidBid(res.data.nextBid));
+    api.get('/auction/next-bid').then((res) => setNextValidBid(res.data.nextBid)).catch(() => {});
   }, [player, currentBid, currentBidder]);
 
   const isHighestBidder = currentBidder && (
@@ -78,14 +78,17 @@ const AuctionPage = () => {
       setCurrentBidder(null);
       setTimerEndsAt(data.timerEndsAt);
       setLastOutcome(null);
+      setRtmWindow(null);
+      setIsFinalCall(false);
     });
 
     socket.on('auction:sync', (data) => {
-      if (data.status === 'live') {
+      if (data.status === 'live' || data.status === 'paused') {
         setPlayer(data.player);
         setCurrentBid(data.currentBid);
         setCurrentBidder(data.currentBidder);
         setTimerEndsAt(data.timerEndsAt);
+        setIsPaused(data.status === 'paused');
       }
     });
 
@@ -97,6 +100,7 @@ const AuctionPage = () => {
 
     socket.on('auction:paused', () => {
       setIsPaused(true);
+      setIsFinalCall(false);
     });
 
     socket.on('auction:resumed', (data) => {
