@@ -2,16 +2,22 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { formatPrice } from '../utils/formatCurrency';
 
-const BidHistory = ({ playerId }) => {
+const BidHistory = ({ playerId,refreshKey }) => {
   const [logs, setLogs] = useState([]);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    setLogs([]);
+  }, [playerId]);
+
+  useEffect(() => {
     if (!open || !playerId) return;
+    let cancelled = false;
     api.get(`/players/${playerId}/bid-history`).then((res) => {
-      setLogs(Array.isArray(res.data) ? res.data : []);
-    });
-  }, [playerId, open]);
+      if(!cancelled) setLogs(Array.isArray(res.data) ? res.data : []);
+    }).catch(() => {});
+    return () => {cancelled = true};
+  }, [playerId, open,refreshKey]);
 
   return (
     <div className="mt-6 bg-white/5 border border-white/10 rounded-xl p-4 text-left">

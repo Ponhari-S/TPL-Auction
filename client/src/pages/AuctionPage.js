@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import socket from "../socket/socket";
 import Header from "../components/Header";
 import api from "../api/axios";
@@ -26,6 +26,7 @@ const AuctionPage = () => {
   const [lastOutcome, setLastOutcome] = useState(null);
   const [nextValidBid, setNextValidBid] = useState(0);
   const [isFinalCall, setIsFinalCall] = useState(false);
+  const closeOutcome = useCallback(() => setLastOutcome(null), []);
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -80,6 +81,7 @@ const AuctionPage = () => {
       setLastOutcome(null);
       setRtmWindow(null);
       setIsFinalCall(false);
+      setBidError('');
     });
 
     socket.on('auction:sync', (data) => {
@@ -96,6 +98,7 @@ const AuctionPage = () => {
       setCurrentBid(data.currentBid);
       setCurrentBidder(data.currentBidder);
       setTimerEndsAt(data.timerEndsAt);
+      setBidError('');
     });
 
     socket.on('auction:paused', () => {
@@ -199,7 +202,7 @@ const AuctionPage = () => {
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
       <Header />
-      <OutcomeModal outcome={lastOutcome} onClose={() => setLastOutcome(null)} />
+      <OutcomeModal outcome={lastOutcome} onClose={closeOutcome} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Main Auction Section */}
@@ -323,7 +326,7 @@ const AuctionPage = () => {
                       <p className="font-display text-xl text-white tabular-nums">{player.stats.strikeRate}</p>
                     </div>
                   </div>
-                  <BidHistory playerId={player._id} key={currentBid}/>
+                  <BidHistory playerId={player._id} refreshKey={`${currentBid}-${currentBidder?._id || ''}`}/>
                 </div>
               </>
             )}
