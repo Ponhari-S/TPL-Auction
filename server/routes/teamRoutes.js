@@ -11,11 +11,11 @@ const router = express.Router();
 
 const buildTeamView = (team, user) => {
     const obj = team.toObject();
-    if (user.role === 'admin') return obj;
+    if (user?.role === 'admin') return obj;
     if (obj.captain) delete obj.captain.email;
-    obj.players = team.players.map((p) => ({
+    obj.players = (team.players || []).filter(Boolean).map((p) => ({
         ...publicPlayer(p),
-        isSelf: !!p.user && p.user.toString() === user.id
+        isSelf: !!p.user && p.user.toString() === user?.id
     }));
     return obj;
 };
@@ -40,8 +40,7 @@ router.post('/',protect,isAdmin,async (req,res)=>{
 router.get('/', protect, async (req, res) => {
     try {
         const teams = await Team.find().populate('captain', 'name email').populate('players');
-        const myTeamId = await getMyTeamId(req.user.id);
-        res.json(team.map((t) => buildTeamView(t, req.user)));
+        res.json(teams.map((t) => buildTeamView(t, req.user)));
     }
     catch (err) {
         res.status(500).json({ message: err.message });
@@ -64,7 +63,6 @@ router.get('/:id', protect, async (req, res) => {
         if (!team) {
             return res.status(404).json({ message: "Team not found !!" });
         }
-        const myTeamId = await getMyTeamId(req.user.id);
         res.json(buildTeamView(team, req.user));
     }
     catch (err) {
@@ -140,7 +138,7 @@ router.put('/:id/select',protect,async (req,res)=>{
 
 router.delete('/:id',protect,isAdmin,async (req,res)=>{
     try{
-        const team= await Team.findByIdandDelete(req.params.id);
+        const team= await Team.findByIdAndDelete(req.params.id);
         if(!team){
             return res.status(404).json({message:"Team not found!!!"});
         }

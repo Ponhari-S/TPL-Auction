@@ -1,4 +1,5 @@
 const publicPlayer = (p) => {
+    if (!p) return null;
     const o = typeof p.toObject === 'function' ? p.toObject() : p;
     return {
         _id: o._id,

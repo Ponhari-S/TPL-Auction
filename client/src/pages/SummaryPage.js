@@ -17,23 +17,23 @@ const SummaryPage = () => {
         .catch((err) => setError('Failed to load summary'));
     }, []);
 
-    const getSpent = (teams) => teams.players.reduce((sum, p) => sum + (p.soldPrice || p.retentionPrice || 0), 0);
+    const getSpent = (team) => (team?.players || []).reduce((sum, p) => sum + (p?.soldPrice || p?.retentionPrice || 0), 0);
 
-    const allSoldPlayers = teams.flatMap((team)=>team.players.map((p)=>({...p,teamName:team.name})));
+    const allSoldPlayers = (teams || []).flatMap((team) => (team?.players || []).filter(Boolean).map((p) => ({ ...p, teamName: team.name })));
 
-    const mostExpensive = allSoldPlayers.length ? allSoldPlayers.reduce((max,p)=>{
+    const mostExpensive = allSoldPlayers.length ? allSoldPlayers.reduce((max, p) => {
         const price = p.soldPrice || p.retentionPrice || 0;
         const maxPrice = max.soldPrice || max.retentionPrice || 0;
-        return price > maxPrice ? p :max;
-    },allSoldPlayers[0]) : null;
+        return price > maxPrice ? p : max;
+    }, allSoldPlayers[0]) : null;
     
-    const bestValue = allSoldPlayers.length ? allSoldPlayers.reduce((best,p)=>{
+    const bestValue = allSoldPlayers.length ? allSoldPlayers.reduce((best, p) => {
         const price = p.soldPrice || p.retentionPrice || 1;
         const bestPrice = best.soldPrice || best.retentionPrice || 1;
-        const priceGap = price - p.basePrice;
-        const bestPriceGap = bestPrice - best.basePrice;
+        const priceGap = price - (p.basePrice || 0);
+        const bestPriceGap = bestPrice - (best.basePrice || 0);
         return priceGap < bestPriceGap ? p : best;
-    },allSoldPlayers[0]) : null;
+    }, allSoldPlayers[0]) : null;
 
   return (
     <div className="min-h-screen bg-[#0a0f1e]">
@@ -95,7 +95,7 @@ const SummaryPage = () => {
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <h2 className="font-display text-lg text-white tracking-tight truncate">{team.name}</h2>
                     <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400">
-                      {team.players.length} {team.players.length === 1 ? 'Player' : 'Players'}
+                      {(team.players || []).length} {(team.players || []).length === 1 ? 'Player' : 'Players'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-400 pb-3 border-b border-white/10 mb-3">
@@ -104,13 +104,13 @@ const SummaryPage = () => {
                   </div>
 
                   <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                    {team.players.map((p) => (
+                    {(team.players || []).map((p) => (
                       <div key={p._id} className="flex justify-between items-center text-xs gap-2 py-0.5">
                         <span className="text-slate-300 truncate">{p.name} <span className="text-slate-500 capitalize text-[11px]">({p.role})</span></span>
                         <span className="text-[#f4b942] font-display tabular-nums shrink-0">{formatPrice(p.soldPrice || p.retentionPrice || 0)}</span>
                       </div>
                     ))}
-                    {team.players.length === 0 && (
+                    {(!team.players || team.players.length === 0) && (
                       <p className="text-slate-600 text-xs italic py-2">No players acquired</p>
                     )}
                   </div>
