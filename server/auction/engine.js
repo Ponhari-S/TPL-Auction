@@ -3,6 +3,7 @@ const Player = require('../models/Player');
 const Team = require('../models/Team');
 const mongoose = require('mongoose');
 const BidLog = require('../models/BidLog');
+const { publicPlayer } = require('../utils/visibility');
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const OUTCOME_DISPLAY_MS = 3000;
@@ -79,7 +80,7 @@ const finalizeSale = async (state, player) => {
 
     const team = await Team.findById(state.currentBidder);
     ioInstance.emit('auction:playerSold', {
-      player,
+      player: publicPlayer(player),
       team: { _id: team._id, name: team.name },
       soldPrice: state.currentBid
     });
@@ -121,7 +122,7 @@ const resumeTimer = async () => {
     const eligibleTeam = await Team.findById(awaitingRtmTeamId);
 
     ioInstance.emit('auction:rtmWindow', {
-      player,
+      player: publicPlayer(player),
       currentBid: state.currentBid,
       eligibleTeamId: awaitingRtmTeamId,
       eligibleTeamName: eligibleTeam?.name,
@@ -189,7 +190,7 @@ const startNextPlayer = async () => {
     await state.save();
 
     ioInstance.emit('auction:playerUp', {
-      player,
+      player: publicPlayer(player),
       currentBid: state.currentBid,
       timerEndsAt: state.timerEndsAt
     });
@@ -231,7 +232,7 @@ const resolveTimeout = async () => {
       awaitingRtmTeamId = eligibleTeamId.toString();
       const eligibleTeam = await Team.findById(eligibleTeamId);
       ioInstance.emit('auction:rtmWindow', {
-        player,
+        player: publicPlayer(player),
         currentBid: state.currentBid,
         eligibleTeamId: eligibleTeamId.toString(),
         eligibleTeamName: eligibleTeam?.name,
@@ -255,7 +256,7 @@ const resolveTimeout = async () => {
       player.status = 'unsold-final';
       await player.save();
 
-      ioInstance.emit('auction:playerUnsoldFinal', { player });
+      ioInstance.emit('auction:playerUnsoldFinal', { player: publicPlayer(player)});
       console.log(`UNSOLD-FINAL: ${player.name}`);
     }
     else {
@@ -268,7 +269,7 @@ const resolveTimeout = async () => {
           state.playerQueue.push(player._id);
           await state.save({ session });
         });
-        ioInstance.emit('auction:playerUnsold', { player });
+        ioInstance.emit('auction:playerUnsold', { player: publicPlayer(player) });
         console.log(`UNSOLD : ${player.name}`);
       }
       catch (transactionErr) {

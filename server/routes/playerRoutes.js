@@ -7,6 +7,7 @@ const AuctionState = require("../models/AuctionState");
 const mongoose = require('mongoose');
 const { getRating, ratingToPool } = require('../gemini/rating');
 const BidLog = require('../models/BidLog');
+const { publicPlayer } = require('../utils/visibility');
 
 const router = express.Router();
 
@@ -46,7 +47,7 @@ router.post('/', protect, isAdmin, async (req, res) => {
 router.get('/', protect, async (req, res) => {
     try {
         const player = await Player.find();
-        res.status(200).json(player);
+        res.status(200).json(req.user.role === 'admin' ? player : player.map(publicPlayer));
     }
     catch (err) {
         res.status(500).json({ message: err.message });
@@ -59,7 +60,7 @@ router.get('/me/profile', protect, async (req, res) => {
         if (!player) {
             return res.status(404).json({ message: "No player profile found for this user" });
         }
-        res.json(player);
+        res.json({ ...publicPlayer(player), soldTo: player.soldTo, retainedBy: player.retainedBy });
     }
     catch (err) {
         res.status(500).json({ message: err.message });
@@ -84,7 +85,7 @@ router.get('/:id', protect, async (req, res) => {
         if (!player) {
             return res.status(404).json({ message: "Player not found" });
         }
-        res.status(200).json(player);
+        res.status(200).json(req.user.role === 'admin' ? player : publicPlayer(player));
     }
     catch (err) {
         res.status(500).json({ message: err.message });

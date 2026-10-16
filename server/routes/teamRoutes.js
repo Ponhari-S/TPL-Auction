@@ -5,8 +5,20 @@ const protect = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 const Player = require('../models/Player');
 const AuctionState = require('../models/AuctionState');
+const { publicPlayer } = require('../utils/visibility');
 
 const router = express.Router();
+
+const buildTeamView = (team, user) => {
+    const obj = team.toObject();
+    if (user.role === 'admin') return obj;
+    if (obj.captain) delete obj.captain.email;
+    obj.players = team.players.map((p) => ({
+        ...publicPlayer(p),
+        isSelf: !!p.user && p.user.toString() === user.id
+    }));
+    return obj;
+};
 
 router.post('/',protect,isAdmin,async (req,res)=>{
     try{
@@ -25,13 +37,14 @@ router.post('/',protect,isAdmin,async (req,res)=>{
     }
 });
 
-router.get('/',protect,async (req,res)=>{
-    try{
-        const team= await Team.find().populate('captain','name email').populate('players');
-        res.json(team);
+router.get('/', protect, async (req, res) => {
+    try {
+        const teams = await Team.find().populate('captain', 'name email').populate('players');
+        const myTeamId = await getMyTeamId(req.user.id);
+        res.json(team.map((t) => buildTeamView(t, req.user)));
     }
-    catch(err){
-        res.status(500).json({message:err.message});
+    catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
@@ -45,16 +58,17 @@ router.get('/unassigned/list',protect,async (req,res)=>{
     }
 });
 
-router.get('/:id',protect,async (req,res)=>{
-    try{
-        const team=await Team.findById(req.params.id).populate('captain','name email').populate('players');
-        if(!team){
-            return res.status(404).json({message:"Team not found !!"});
+router.get('/:id', protect, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.id).populate('captain', 'name email').populate('players');
+        if (!team) {
+            return res.status(404).json({ message: "Team not found !!" });
         }
-        res.send(team);
+        const myTeamId = await getMyTeamId(req.user.id);
+        res.json(buildTeamView(team, req.user));
     }
-    catch(err){
-        res.status(500).json({message:err.message});
+    catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 

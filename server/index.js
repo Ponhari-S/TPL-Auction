@@ -6,6 +6,7 @@ require('dotenv').config();
 process.on('unhandledRejection', (reason) => {
     console.error('Unhandled rejection:', reason);
 });
+const { publicPlayer } = require('./utils/visibility');
 const { connectDB } = require('./config/db');
 const { Server } = require('socket.io');
 const http = require('http');
@@ -71,7 +72,7 @@ const sendSyncIfLive = async (socket) => {
             const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
             socket.emit('auction:sync', {
                 status: state.status,
-                player,
+                player: publicPlayer(player),
                 currentBid: state.currentBid,
                 currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
                 timerEndsAt: state.timerEndsAt

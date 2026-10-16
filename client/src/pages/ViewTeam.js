@@ -167,7 +167,7 @@ function ViewTeam() {
                   )}
                   <p className="text-slate-400 text-xs mb-2">Select a player to make captain:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {team.players.filter((p) => p.user !== user._id).map((p) => (
+                  {team.players.filter((p) => !p.isSelf).map((p) => (
                       <button
                         key={p._id}
                         onClick={() => handleGiveCaptaincy(p._id)}
@@ -197,7 +197,7 @@ function ViewTeam() {
                         )}
                       </div>
 
-                      {isMyTeamCaptain && p.user !== user._id && (
+                      {isMyTeamCaptain && !p.isSelf && (
                         <div className="mt-3 pt-2 border-t border-white/5">
                           {confirmingRelease === p._id ? (
                             <div className="flex gap-2">
