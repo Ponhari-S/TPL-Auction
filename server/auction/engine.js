@@ -126,7 +126,8 @@ const resumeTimer = async () => {
       currentBid: state.currentBid,
       eligibleTeamId: awaitingRtmTeamId,
       eligibleTeamName: eligibleTeam?.name,
-      windowEndsAt: newWindowEndsAt
+      windowEndsAt: newWindowEndsAt,
+      serverTime: Date.now()
     });
 
     rtmTimer = setTimeout(async () => {
@@ -147,7 +148,7 @@ const resumeTimer = async () => {
 
   currentTimer = setTimeout(handleTimeout, durationMs);
 
-  ioInstance.emit('auction:resumed', { timerEndsAt: newTimerEndsAt });
+  ioInstance.emit('auction:resumed', { timerEndsAt: newTimerEndsAt, serverTime: Date.now() });
 };
 
 const startNextPlayer = async () => {
@@ -192,7 +193,8 @@ const startNextPlayer = async () => {
     ioInstance.emit('auction:playerUp', {
       player: publicPlayer(player),
       currentBid: state.currentBid,
-      timerEndsAt: state.timerEndsAt
+      timerEndsAt: state.timerEndsAt,
+      serverTime: Date.now()
     });
 
     console.log(`Player up: ${player.name}, timer ends at ${state.timerEndsAt}`);
@@ -236,7 +238,8 @@ const resolveTimeout = async () => {
         currentBid: state.currentBid,
         eligibleTeamId: eligibleTeamId.toString(),
         eligibleTeamName: eligibleTeam?.name,
-        windowEndsAt: new Date(Date.now() + 5000)
+        windowEndsAt: new Date(Date.now() + 5000),
+        serverTime: Date.now()
       });
 
       console.log(`RTM WINDOW: ${eligibleTeam?.name} has 5s to match on ${player.name}`);
@@ -366,7 +369,8 @@ const placeBid = async (userId, amount) => {
       _id: team._id,
       name: team.name
     },
-    timerEndsAt: updatedState.timerEndsAt
+    timerEndsAt: updatedState.timerEndsAt,
+    serverTime: Date.now()
   });
   const playerDoc = await Player.findById(state.currentPlayer).select('name');
   console.log(`Bid placed: ${team.name} bid ${amount} on player ${playerDoc?.name || state.currentPlayer}`);

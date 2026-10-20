@@ -75,7 +75,8 @@ const sendSyncIfLive = async (socket) => {
                 player: publicPlayer(player),
                 currentBid: state.currentBid,
                 currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
-                timerEndsAt: state.timerEndsAt
+                timerEndsAt: state.timerEndsAt,
+                serverTime: Date.now(),
             });
         }
     } catch (err) {
@@ -85,24 +86,6 @@ const sendSyncIfLive = async (socket) => {
 
 io.on('connection', async (socket) => {
     console.log('Client connected:', socket.id);
-
-    try {
-        const state = await AuctionState.findById('singleton');
-        if (state && state.status == 'live' && state.currentPlayer) {
-            const player = await Player.findById(state.currentPlayer);
-            const bidderTeam = state.currentBidder ? await Team.findById(state.currentBidder) : null;
-            socket.emit('auction:sync', {
-                status: state.status,
-                player,
-                currentBid: state.currentBid,
-                currentBidder: bidderTeam ? { _id: bidderTeam._id, name: bidderTeam.name } : null,
-                timerEndsAt: state.timerEndsAt
-            });
-        }
-    }
-    catch (err) {
-        console.error('Sync on connect failed:', err.message);
-    }
 
     sendSyncIfLive(socket);
 

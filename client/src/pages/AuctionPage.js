@@ -7,6 +7,7 @@ import CountdownTimer from './CountdownTimer';
 import { formatPrice } from '../utils/formatCurrency';
 import OutcomeModal from '../components/OutcomeModal';
 import BidHistory from '../components/BidHistory';
+import { syncServerTime } from '../utils/serverClock';
 
 const AuctionPage = () => {
   const { user, token } = useSelector((state) => state.auth);
@@ -74,6 +75,7 @@ const AuctionPage = () => {
 
   useEffect(() => {
     socket.on('auction:playerUp', (data) => {
+      syncServerTime(data.serverTime);
       setPlayer(data.player);
       setCurrentBid(data.currentBid);
       setCurrentBidder(null);
@@ -85,6 +87,7 @@ const AuctionPage = () => {
     });
 
     socket.on('auction:sync', (data) => {
+      syncServerTime(data.serverTime);
       if (data.status === 'live' || data.status === 'paused') {
         setPlayer(data.player);
         setCurrentBid(data.currentBid);
@@ -95,6 +98,7 @@ const AuctionPage = () => {
     });
 
     socket.on('auction:bidUpdate', (data) => {
+      syncServerTime(data.serverTime);
       setCurrentBid(data.currentBid);
       setCurrentBidder(data.currentBidder);
       setTimerEndsAt(data.timerEndsAt);
@@ -107,6 +111,7 @@ const AuctionPage = () => {
     });
 
     socket.on('auction:resumed', (data) => {
+      syncServerTime(data.serverTime);
       setIsPaused(false);
       setTimerEndsAt(data.timerEndsAt);
     });
@@ -161,6 +166,7 @@ const AuctionPage = () => {
     });
 
     socket.on('auction:rtmWindow', (data) => {
+      syncServerTime(data.serverTime);
       setRtmWindow(data);
     });
 

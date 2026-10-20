@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { serverNow } from '../utils/serverClock';
 
 const CountdownTimer = ({ timerEndsAt, onFinalCallChange, disableFinalCallStyle = false }) => {
     const [secondsLeft, setSecondsLeft] = useState(0);
@@ -9,7 +10,7 @@ const CountdownTimer = ({ timerEndsAt, onFinalCallChange, disableFinalCallStyle 
             return;
         }
         const calculate = () => {
-            const diff = new Date(timerEndsAt).getTime() - Date.now();
+          const diff = new Date(timerEndsAt).getTime() - serverNow();
             const seconds = Math.max(0, Math.ceil(diff / 1000));
             setSecondsLeft(seconds);
         };
