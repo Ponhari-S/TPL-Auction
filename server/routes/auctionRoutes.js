@@ -173,9 +173,26 @@ router.post('/new-season',protect,isAdmin,async (req,res)=>{
         if (state.status === 'live' || state.status === 'paused') {
             return res.status(400).json({ message: 'Cannot start a new season while an auction is in progress' });
         }
-        state.season+=1;
+        const reset = await Player.updateMany(
+            { status: { $in: ['unsold', 'unsold-final'] } },
+            { $set: { status: 'registered' } }
+        );
+        
+        state.season += 1;
+        state.status = 'not-started';
+        state.currentPlayer = null;
+        state.currentBid = 0;
+        state.currentBidder = null;
+        state.timerEndsAt = null;
+        state.playerQueue = [];
+        state.biddingClosed = false;
         await state.save();
-        res.json({ message: `Season ${state.season} started`, season: state.season });
+        
+        res.json({
+            message: `Season ${state.season} started. ${reset.modifiedCount} unsold players returned to the pool.`,
+            season: state.season,
+            reset: reset.modifiedCount
+        });
     }
     catch(err){
         res.status(500).json({ message: err.message });
