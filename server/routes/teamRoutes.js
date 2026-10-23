@@ -70,27 +70,6 @@ router.get('/:id', protect, async (req, res) => {
     }
 });
 
-router.put('/:id',protect,isAdmin,async (req,res)=>{
-    try{
-        const team=await Team.findById(req.params.id).populate('captain','name email').populate('players');
-        if(!team){
-            return res.status(404).json({message:"Team not found !!"});
-        }
-        const isOwner=team.owner.toString()===req.user.id;
-        if(!isOwner && req.user.role!='admin'){
-            return res.status(403).json({message:"Not authorized to edit this team"});
-        }
-        const updated=await Team.findByIdAndUpdate(req.params.id,req.body,{
-            new: true,
-            runValidators: true
-        });
-        res.json(updated);
-    }
-    catch(err){
-        res.status(500).json({message:err.message});   
-    }
-});
-
 router.put('/:id/select',protect,async (req,res)=>{
     try{
         if(req.user.role!=='captain'){
@@ -135,47 +114,6 @@ router.put('/:id/select',protect,async (req,res)=>{
         res.status(500).json({message:err.message});
     }
 });
-
-router.delete('/:id',protect,isAdmin,async (req,res)=>{
-    try{
-        const team= await Team.findByIdAndDelete(req.params.id);
-        if(!team){
-            return res.status(404).json({message:"Team not found!!!"});
-        }
-        res.json({message:"Team deleted"});
-    }
-    catch(err){
-        res.status(500).json({message:err.message});
-    }
-});
-
-router.put('/:id/rate', protect, isAdmin, async (req, res) => {
-    try {
-      const player = await Player.findById(req.params.id);
-      if (!player) {
-        return res.status(404).json({ message: 'Player not found' });
-      }
-  
-      const rating = await getRating(player);
-      const pool = ratingToPool(rating);
-      const state = await AuctionState.findById('singleton');
-  
-      const poolPrices = {
-        marquee: state?.marqueeBasePrice || 20000000,
-        elite: state?.eliteBasePrice || 10000000,
-        rookie: state?.rookieBasePrice || 5000000
-      };
-  
-      player.overallRating = rating;
-      player.pool = pool;
-      player.basePrice = poolPrices[pool];
-      await player.save();
-  
-      res.json(player);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  });
 
 router.put('/:id/give-captaincy',protect,async (req,res)=>{
     try{

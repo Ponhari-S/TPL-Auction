@@ -3,6 +3,11 @@ const playersData=require('./playersData');
 const mongoose=require('mongoose');
 require('dotenv').config();
 
+if (process.env.NODE_ENV === 'production' || !process.argv.includes('--confirm')) {
+    console.error('Refusing to run: this deletes ALL players. Run with --confirm, never in production.');
+    process.exit(1);
+}
+
 const runseed = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI);

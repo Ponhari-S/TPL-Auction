@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const teamSchema = new mongoose.Schema({
     name:{
         type:String,
-        required:true
+        required:true,
+        unique:true,
+        trim:true
     },
     logo:{
         type:String,
-        required:true
+        default:''
     },
     captain:{
         type: mongoose.Schema.Types.ObjectId,
